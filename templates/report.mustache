@@ -1,0 +1,160 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_feedbackbox/previewpage
+}}
+<div>
+    <div>
+        <div class="feedbacknavbar">
+            {{#navbarelements}}
+                <div class="{{#active}}active{{/active}}"><a href="{{{url}}}" class="navbarelement">{{name}}</a></div>
+            {{/navbarelements}}
+        </div>
+        <div class="feedbacknavbarborder"></div>
+    </div>
+    {{#all}}
+        <div class="viewallcontainer">
+            <h1>{{#str}}report_all_title, mod_feedbackbox{{/str}}</h1>
+            <h2>{{#str}}report_all_avgfeedback, mod_feedbackbox{{/str}}</h2>
+            <div class="grid-container">
+                <div class="participants">
+                    <div class="sectiontext">{{#str}}report_all_participantcount, mod_feedbackbox{{/str}}</div>
+                    <div class="canvas-graph-small">
+                        <canvas id="participants"></canvas>
+                    </div>
+                </div>
+                <div class="coursehealth">
+                    <div class="sectiontext">{{#str}}report_howwell_title, mod_feedbackbox{{/str}}</div>
+                    <div class="canvas-graph-small">
+                        <canvas id="coursehealth"></canvas>
+                    </div>
+                </div>
+                <div class="ratinggood">
+                    <div class="sectiontext">{{#str}}report_all_thisisgood, mod_feedbackbox{{/str}}:</div>
+                    <div class="topthree">
+                        {{#good}}
+                            <div>
+                                <div>#{{id}}</div>
+                                <span>{{name}}</span></div>
+                        {{/good}}
+                    </div>
+                </div>
+                <div class="ratingbad">
+                    <div class="sectiontext">{{#str}}report_all_thisisbad, mod_feedbackbox{{/str}}:</div>
+                    <div class="topthree">
+                        {{#bad}}
+                            <div>
+                                <div>#{{id}}</div>
+                                <span>{{name}}</span></div>
+                        {{/bad}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/all}}
+    {{#single}}
+        <div class="grid-containerturnus">
+            <div class="data">
+                <div>
+                    <h2>{{#str}}report_sin_title, mod_feedbackbox{{/str}}</h2>
+                    <h3>{{#str}}round, mod_feedbackbox{{/str}} {{#zone}}{{id}}: {{fromdate}}
+                        {{#str}}combineworduntil, mod_feedbackbox{{/str}} {{todate}}{{/zone}}</h3>
+                    <br/>
+                    <div>
+                        <div style="float: left">
+                            {{#str}}report_sin_status, mod_feedbackbox{{/str}}: {{#current}}
+                            {{#str}}report_sin_current, mod_feedbackbox{{/str}}{{/current}}{{^current}}
+                            {{#str}}report_sin_old, mod_feedbackbox{{/str}}{{/current}}
+                        </div>
+                        <div style="float: right">
+                            {{#str}}report_sin_participants, mod_feedbackbox{{/str}}: {{participants}}
+                            / {{totalparticipants}}
+                        </div>
+                        <div style="clear: both"></div>
+                    </div>
+                    <div class="sectiontext"></div>
+                    <h3><b>{{#str}}report_howwell_title, mod_feedbackbox{{/str}}</b></h3>
+                    <div class="canvas-graph-big">
+                        <canvas id="studchart"></canvas>
+                    </div>
+                    <div class="sectiontext"></div>
+                    <h3><b>{{#str}}report_sin_thisisgood, mod_feedbackbox{{/str}}</b></h3>
+                    <div>
+                        {{#goodchoises}}
+                            <div class="choiceresult"><span>{{name}}</span> {{result}}</div>
+                        {{/goodchoises}}
+                    </div>
+                    <div class="clearboth"></div>
+                    <div>
+                        {{#goodmessages}}
+                            <div class="infotext">{{.}}</div>
+                        {{/goodmessages}}
+                    </div>
+                    <div class="sectiontext"></div>
+                    <h3><b>{{#str}}report_sin_thisisbad, mod_feedbackbox{{/str}}</b></h3>
+                    <div>
+                        {{#badchoises}}
+                            <div class="choiceresult"><span>{{name}}</span> {{result}}</div>
+                        {{/badchoises}}
+                    </div>
+                    <div class="clearboth"></div>
+                    <div>
+                        {{#badmessages}}
+                            <div class="infotext">{{.}}</div>
+                        {{/badmessages}}
+                    </div>
+                    <div class="sectiontext"></div>
+                </div>
+            </div>
+            <div class="turnus">
+                <div class="turnusdata">
+                    {{#zones}}
+                        <div>
+                            {{#display}}
+                                <div class="turnusenabled {{#currenta}}active{{/currenta}}">
+                                    <a href="{{{url}}}">
+                                        <div>
+                                            {{#str}}round, mod_feedbackbox{{/str}} {{id}}
+                                        </div>
+                                        <div>
+                                            {{fromdate}} {{#str}}combineworduntil, mod_feedbackbox{{/str}} {{todate}}
+                                        </div>
+                                    </a>
+                                </div>
+                            {{/display}}
+                            {{^display}}
+                                <div class="turnusdisabled">
+                                    <div>
+                                        {{#str}}round, mod_feedbackbox{{/str}} {{id}}
+                                    </div>
+                                    <div>
+                                        {{fromdate}} {{#str}}combineworduntil, mod_feedbackbox{{/str}} {{todate}}
+                                    </div>
+                                </div>
+                            {{/display}}
+                        </div>
+                    {{/zones}}
+                </div>
+            </div>
+        </div>
+    {{/single}}
+    <div style="display: none" id="feedbackboxicons">
+        {{#pix}}b/fb_4_hilfe, mod_feedbackbox, Icon{{/pix}}
+        {{#pix}}b/fb_3_okay, mod_feedbackbox, Icon{{/pix}}
+        {{#pix}}b/fb_2_laeuft, mod_feedbackbox, Icon{{/pix}}
+        {{#pix}}b/fb_1_hyper, mod_feedbackbox, Icon{{/pix}}</div>
+</div>

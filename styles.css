@@ -1,0 +1,482 @@
+/** Question editing **/
+
+#page-mod-feedbackbox-questions .qcontainer .fitemtitle,
+#page-mod-feedbackbox-questions #id_questionhdr .fitemtitle {
+    display: none;
+}
+
+#page-mod-feedbackbox-questions .qcontainer .qnums {
+    font-weight: bold;
+    float: left;
+    color: gray;
+}
+
+#page-mod-feedbackbox-questions .qcontainer .fstatic {
+    width: 97%;
+    margin-right: 1em;
+    margin-left: 5px;
+    /* Set a negative margin-bottom to save some vertical space! */
+    margin-bottom: -10px;
+}
+
+#page-mod-feedbackbox-questions .mform .fitem fieldset.felement {
+    margin-left: 0;
+    padding-left: 1%;
+    margin-bottom: 0;
+}
+
+#page-mod-feedbackbox-preview fieldset,
+#page-mod-feedbackbox-complete fieldset {
+    margin-bottom: 0;
+}
+
+#page-mod-feedbackbox-questions .mform .fitem .fitemtitle {
+    text-align: left;
+    margin-left: 10px;
+    margin-bottom: 0;
+}
+
+#page-mod-feedbackbox-questions .moving {
+    border: medium dotted maroon;
+}
+
+div.qoptcontainer div.ftextarea {
+    clear: both;
+    float: none;
+    width: 600px;
+    margin: 0 auto 10px;
+}
+
+div.qoptcontainer div.ftextarea textarea.qopts {
+    width: 600px;
+    height: 10em;
+    margin-left: 1px;
+}
+
+.response span.selected,
+.generalboxcontent span.selected {
+    font-weight: bold;
+}
+
+td.selected {
+    background-color: #e4f1fa;
+    border: 1px solid gray;
+}
+
+#page-mod-feedbackbox-myreport div.respdate {
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-bottom: 6px;
+    padding-top: 6px;
+    border-bottom: 1px dashed gray;
+}
+
+#page-mod-feedbackbox-complete .notifyproblem,
+#page-mod-feedbackbox-preview .notifyproblem {
+    border-color: red;
+}
+
+#page-mod-feedbackbox-fbsections .notifyproblem {
+    text-align: left;
+    padding: 0;
+}
+
+.surveyPage {
+    background-color: #eee;
+    border-bottom-color: #000;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    clear: right;
+    padding: 3px;
+    margin-bottom: 5px;
+    margin-top: 0;
+}
+
+/* alternate columns formatting */
+
+#page-mod-feedbackbox-complete .c0,
+#page-mod-feedbackbox-preview .c0,
+#page-mod-feedbackbox-print .c0,
+#page-mod-feedbackbox-report .individual .c0,
+#page-mod-feedbackbox-myreport .individual .c0 {
+    background-color: #fafafa;
+    border: 1px solid silver;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#page-mod-feedbackbox-complete .raterow:hover,
+#page-mod-feedbackbox-preview .raterow:hover {
+    background-color: #e4f1fa;
+}
+
+#page-mod-feedbackbox-complete td.raterow:hover,
+#page-mod-feedbackbox-preview td.raterow:hover {
+    border: 1px solid navy;
+}
+
+#page-mod-feedbackbox-complete td.notanswered,
+#page-mod-feedbackbox-preview td.notanswered {
+    /* border: none; */
+    background-color: #fafafa;
+}
+
+#page-mod-feedbackbox-complete td.notcompleted,
+#page-mod-feedbackbox-preview td.notcompleted {
+    border: 2px solid red;
+    background-color: #fafafa;
+}
+
+#page-mod-feedbackbox-complete .c1,
+#page-mod-feedbackbox-preview .c1,
+#page-mod-feedbackbox-print .c1,
+#page-mod-feedbackbox-report .individual .c1,
+#page-mod-feedbackbox-myreport .individual .c1 {
+    background-color: #eee;
+    border: 1px solid silver;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#page-mod-feedbackbox-myreport .individualresp,
+#page-mod-feedbackbox-preview .individualresp,
+#page-mod-feedbackbox-print .individualresp {
+    border: #c0c0c0 1px solid;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    padding-bottom: 0;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+#page-mod-feedbackbox-complete .notice .buttons div,
+#page-mod-feedbackbox-complete .notice .buttons form {
+    display: inline;
+}
+
+.floatprinticon {
+    margin-top: -30px;
+    float: right;
+}
+
+/* progress bar styling */
+
+#page-mod-feedbackbox-complete .feedbackbox-progressbar {
+    height: 14px;
+    margin-top: 5px;
+    border: 1px solid #dedede;
+    border-radius: 5px;
+    width: auto;
+    overflow: hidden;
+}
+
+#page-mod-feedbackbox-complete .feedbackbox-progressbar-progress {
+    background-color: #1177d1;
+    height: 100%;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+#page-mod-feedbackbox-complete .feedbackbox-progressbar-info {
+    float: right;
+}
+
+#page-mod-feedbackbox-complete #feedbackbox-progressbar-percent {
+    margin-left: 5px;
+    margin-right: 5px;
+    min-width: 25px;
+    text-align: center;
+}
+
+#page-mod-feedbackbox-complete .feedbackbox-progressbar-wrapper {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: 10px;
+    height: auto;
+    overflow: hidden;
+}
+
+.qn-legend {
+    float: left;
+    font-size: inherit;
+    width: auto;
+}
+
+/* format paragraph top and bottom margins for better vertical positioning in questions text */
+.qn-question p {
+    margin-bottom: 0.6em;
+    margin-top: 0.5em;
+}
+
+.qn-question {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 0.1em;
+    padding-top: 0.1em;
+}
+
+#page-mod-feedbackbox-questions .qn-question {
+    margin-left: 40px;
+}
+
+.unselected {
+    color: gray;
+}
+
+/*respondents list feature*/
+
+.respondentscolumn {
+    float: left;
+    margin-left: 20px;
+}
+
+.respondentsnavbar {
+    text-align: center;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    margin-bottom: 5px;
+    background-color: #f2f2f2;
+}
+
+/* new quiz-like formatting for 2.5 */
+
+#page-mod-feedbackbox-questions .qn-container {
+    border: 1px dotted gray;
+    margin-bottom: 1em;
+}
+
+.dir-rtl .qn-container {
+    text-align: right;
+}
+
+.qn-info {
+    float: left;
+    width: auto;
+    padding: 7px;
+    background: #eee;
+    font-weight: bold;
+}
+
+.qn-info h2.qn-number {
+    margin: 0;
+    font-size: 1.5em;
+    line-height: 1.2em;
+}
+
+.qn-question,
+.qn-answer {
+    margin: 0 0 0.5em;
+    overflow: auto;
+}
+
+.qn-answer input[type=radio] {
+    margin-left: 0.5em;
+}
+
+.qn-answer > label + input[type=radio] {
+    margin-left: 0;
+}
+
+#notice .qn-question {
+    margin: 0;
+}
+
+.req {
+    font-size: x-small;
+}
+
+.qdepend {
+    color: red;
+    padding-left: 5px;
+    margin-bottom: 5px;
+}
+
+.qdepend-or {
+    color: orange;
+    padding-left: 5px;
+    margin-bottom: 5px;
+}
+
+.qn-content {
+    margin-bottom: 10px;
+}
+
+/* move horizontal radio buttons closer to their labels */
+.qn-answer input[type="radio"],
+.qn-answer input[type="checkbox"] {
+    margin-right: 3px;
+}
+
+#page-mod-feedbackbox-show_nonrespondents input[type="radio"] {
+    margin-right: 1px;
+}
+
+.qn-answer label,
+#page-mod-feedbackbox-show_nonrespondents label {
+    margin-right: 0.6em;
+}
+
+.hidedependquestion {
+    color: red;
+    display: none;
+}
+
+#page-mod-feedbackbox-fbsections .c0,
+#page-mod-feedbackbox-fbsections .c1 {
+    border: 1px solid silver;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+#page-mod-feedbackbox-fbsections .c0 {
+    background-color: #fafafa;
+}
+
+#page-mod-feedbackbox-fbsections .c1 {
+    background-color: #eee;
+}
+
+#page-mod-feedbackbox-fbsections input[type="radio"] {
+    margin-right: 0;
+}
+
+#page-mod-feedbackbox-fbsections .qn-legend {
+    padding-left: 8px;
+}
+
+#page-mod-feedbackbox-fbsections .qcontainer.qcontent {
+    margin-bottom: -5em;
+}
+
+#page-mod-feedbackbox-report div.chart {
+    overflow: auto;
+    margin-left: -40px;
+}
+
+#page-mod-feedbackbox-report .generaltable.feedbackboxreport td {
+    border: 1px solid silver;
+}
+
+.qn-container .smalltext {
+    font-size: 0.75em;
+}
+
+#page-mod-feedbackbox-questions #region-main .mform .fitem .felement {
+    margin-bottom: 0;
+}
+
+.qn-indent {
+    margin-left: 20px;
+}
+
+.feedbackrateradio {
+    visibility: hidden;
+}
+
+.feedbackrateradio + label {
+    vertical-align: top;
+    cursor: pointer;
+    max-width: 150px;
+    min-width: 150px;
+    min-height: 128px;
+    padding: 10px;
+    background-color: unset;
+    border-radius: 10px;
+}
+
+.feedbackrateradio + label div {
+    max-width: 150px;
+    white-space: pre-wrap; /* CSS3 */
+    white-space: -moz-pre-wrap; /* Firefox */
+    white-space: -pre-wrap; /* Opera <7 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* IE */
+}
+
+.feedbackrateradio:checked + label {
+    cursor: pointer;
+    background-color: rgba(12, 12, 12, 0.19);
+}
+
+.feedbackratecheckbox {
+    visibility: hidden;
+    display: none;
+}
+
+.feedbackratecheckbox + label {
+    vertical-align: top;
+    cursor: pointer;
+    padding-left: 9px;
+    padding-right: 9px;
+    background-color: unset;
+    border-color: black;
+    border-style: solid;
+    border-width: 1px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.feedbackratecheckbox:checked + label {
+    cursor: pointer;
+    background-color: rgba(12, 12, 12, 0.19);
+}
+
+.ratesubelements {
+    text-align: center;
+}
+
+.ratesubelements:last-child {
+    padding-top: 10px;
+}
+
+.infotext {
+    margin-left: 5px;
+    padding-left: 10px;
+    margin-top: 20px;
+    color: grey;
+    border-width: 0;
+    border-left-width: 5px;
+    border-style: solid;
+    border-color: #838383;
+}
+
+.clearboth {
+    clear: both;
+}
+
+.alignbox {
+    float: left;
+}
+
+.alignbox:not(:first-child) {
+    padding-left: 10px;
+}
+
+.qn-content .checkstruct {
+    display: flex;
+}
+
+.qn-content .checkimage {
+    flex: 0 1 auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.qn-content .checkselection {
+    flex: 0 1 auto;
+    flex-basis: 90%;
+}
+
+.qn-content .checkselection p{
+    margin-bottom: 5px;
+}
+
+.qn-content .checkselection div .qn-answer {
+    margin: unset;
+}
+
+.mod_feedbackbox_viewpage .buttongroupfb {
+    margin-top: 10px;
+}

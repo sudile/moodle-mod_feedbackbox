@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>amd/src/chart</location>
+        <name>ChartJS</name>
+        <version>?</version>
+        <license>MIT</license>
+        <licenseversion>?</licenseversion>
+    </library>
+</libraries>

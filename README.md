@@ -1,6 +1,8 @@
 # Aktivität Feedback Box
 Mit der "Feedback Box"-Aktivität können Sie von Ihren Studierenden Feedback zu Ihren Lehrveranstaltungen erhalten. Zum Paket gehört auch der Block "Feedback Box" (https://github.com/sudile/moodle-block_feedbackbox).
 
+Voraussetzung: Moodle 3.9+
+
 # Installation
 
 ```bash

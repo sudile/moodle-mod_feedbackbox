@@ -1,50 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 65 65" style="enable-background:new 0 0 65 65;" xml:space="preserve">
+<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" x="0px"
+     y="0px"
+     viewBox="0 0 65 65" style="enable-background:new 0 0 65 65;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#FFBC50;}
 	.st1{fill:#FD980F;}
 	.st2{fill:#FFFFFF;}
 	.st3{fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
 </style>
-<g id="Gruppe_74" transform="translate(2171.907 -3299.298)">
+    <g id="Gruppe_74" transform="translate(2171.907 -3299.298)">
 	<g id="Gruppe_72" transform="translate(-2442.105 3117.762)">
 		<g id="_1F63A_2" transform="translate(273 188.3)">
 			<g id="color">
 				<path id="Pfad_95" class="st0" d="M52.4,39.7c-3.6,9.1-12.7,15.2-23.2,15.2c-9.1,0-19.3-5.8-22.9-15l-0.1-0.3
 					C5,36.5,4.6,33.3,4.5,30L8.6-2.9L19.1,7.7c3-1.3,6.2-1.9,9.5-1.9h1.1c3.3,0,6.5,0.6,9.5,1.9L50.4-3.4l3.7,33.9
 					C54.2,33.6,53.6,36.8,52.4,39.7"/>
-				<path id="Pfad_233" class="st1" d="M30.1,54.7C39.9,55,48.7,49.1,52.2,40l0.1-0.2c1.1-3.2,1.8-6.5,1.8-9.9L50.3-2.2"/>
-				<path id="Pfad_97" class="st2" d="M48.8,24.5c0,0-9.3-9.3-13.3,6.6C46.2,39.1,48.8,24.5,48.8,24.5z"/>
-				<path id="Pfad_98" class="st2" d="M10.6,24.5c0,0,9.3-9.3,13.3,6.6C13.2,39.1,10.6,24.5,10.6,24.5z"/>
+                <path id="Pfad_233" class="st1"
+                      d="M30.1,54.7C39.9,55,48.7,49.1,52.2,40l0.1-0.2c1.1-3.2,1.8-6.5,1.8-9.9L50.3-2.2"/>
+                <path id="Pfad_97" class="st2" d="M48.8,24.5c0,0-9.3-9.3-13.3,6.6C46.2,39.1,48.8,24.5,48.8,24.5z"/>
+                <path id="Pfad_98" class="st2" d="M10.6,24.5c0,0,9.3-9.3,13.3,6.6C13.2,39.1,10.6,24.5,10.6,24.5z"/>
 			</g>
-			<g id="line">
+            <g id="line">
 				<path id="Pfad_99" class="st3" d="M48.8,24.6c0,0-9.3-9.3-13.3,6.6C46.2,39.2,48.8,24.6,48.8,24.6z"/>
-				<line id="Linie_34" class="st3" x1="55.7" y1="45" x2="46.3" y2="39.8"/>
-				<path id="Pfad_100" class="st3" d="M46.3,37.7"/>
-				<line id="Linie_35" class="st3" x1="51.5" y1="50.2" x2="42.2" y2="45"/>
-				<path id="Pfad_101" class="st3" d="M40.1,46.1"/>
-				<path id="Pfad_102" class="st3" d="M7,38.9c-1.1-2.9-1.7-5.9-1.7-9L8.9-2.9l11,10.7c2.9-1.2,6.1-1.9,9.3-1.9h1
+                <line id="Linie_34" class="st3" x1="55.7" y1="45" x2="46.3" y2="39.8"/>
+                <path id="Pfad_100" class="st3" d="M46.3,37.7"/>
+                <line id="Linie_35" class="st3" x1="51.5" y1="50.2" x2="42.2" y2="45"/>
+                <path id="Pfad_101" class="st3" d="M40.1,46.1"/>
+                <path id="Pfad_102" class="st3" d="M7,38.9c-1.1-2.9-1.7-5.9-1.7-9L8.9-2.9l11,10.7c2.9-1.2,6.1-1.9,9.3-1.9h1
 					c3.2,0,6.4,0.7,9.3,1.9l11-10.7l3.6,32.8c0,3.1-0.6,6.1-1.7,9"/>
-				<path id="Pfad_103" class="st3" d="M10.6,24.6c0,0,9.3-9.3,13.3,6.6C13.2,39.2,10.6,24.6,10.6,24.6z"/>
-				<line id="Linie_36" class="st3" x1="3.7" y1="45" x2="13.1" y2="39.8"/>
-				<path id="Pfad_104" class="st3" d="M13.1,37.7"/>
-				<line id="Linie_37" class="st3" x1="7.9" y1="50.2" x2="17.2" y2="45"/>
-				<path id="Pfad_105" class="st3" d="M19.3,46.1"/>
-				<circle id="Ellipse_10" cx="17.2" cy="27.3" r="2.1"/>
-				<circle id="Ellipse_11" cx="42.2" cy="27.3" r="2.1"/>
-				<line id="Linie_38" class="st3" x1="25.3" y1="37.7" x2="33.7" y2="37.7"/>
-				<path id="Pfad_106" class="st3" d="M49.4,51.1"/>
-				<path id="Pfad_107" class="st3" d="M10,51.1"/>
-				<path id="Pfad_108" class="st3" d="M49.4,51.1"/>
-				<path id="Pfad_109" class="st3" d="M10,51.1"/>
-				<path id="Pfad_110" class="st3" d="M57.7,46.2"/>
-				<path id="Pfad_111" class="st3" d="M16.6,50.3c3.8,2.4,8.1,3.6,12.6,3.6h1c4.5,0,8.8-1.2,12.6-3.6"/>
-				<g id="Gruppe_27">
+                <path id="Pfad_103" class="st3" d="M10.6,24.6c0,0,9.3-9.3,13.3,6.6C13.2,39.2,10.6,24.6,10.6,24.6z"/>
+                <line id="Linie_36" class="st3" x1="3.7" y1="45" x2="13.1" y2="39.8"/>
+                <path id="Pfad_104" class="st3" d="M13.1,37.7"/>
+                <line id="Linie_37" class="st3" x1="7.9" y1="50.2" x2="17.2" y2="45"/>
+                <path id="Pfad_105" class="st3" d="M19.3,46.1"/>
+                <circle id="Ellipse_10" cx="17.2" cy="27.3" r="2.1"/>
+                <circle id="Ellipse_11" cx="42.2" cy="27.3" r="2.1"/>
+                <line id="Linie_38" class="st3" x1="25.3" y1="37.7" x2="33.7" y2="37.7"/>
+                <path id="Pfad_106" class="st3" d="M49.4,51.1"/>
+                <path id="Pfad_107" class="st3" d="M10,51.1"/>
+                <path id="Pfad_108" class="st3" d="M49.4,51.1"/>
+                <path id="Pfad_109" class="st3" d="M10,51.1"/>
+                <path id="Pfad_110" class="st3" d="M57.7,46.2"/>
+                <path id="Pfad_111" class="st3" d="M16.6,50.3c3.8,2.4,8.1,3.6,12.6,3.6h1c4.5,0,8.8-1.2,12.6-3.6"/>
+                <g id="Gruppe_27">
 					<path id="Pfad_112" class="st3" d="M29.7,39.3"/>
-					<path id="Pfad_113" class="st3" d="M29.7,38.3v5.3c-0.8,2.3-3.2,3.5-5.5,2.9"/>
-					<path id="Pfad_114" class="st3" d="M29.5,38.1v5.3c0.8,2.3,3.2,3.5,5.5,2.9"/>
+                    <path id="Pfad_113" class="st3" d="M29.7,38.3v5.3c-0.8,2.3-3.2,3.5-5.5,2.9"/>
+                    <path id="Pfad_114" class="st3" d="M29.5,38.1v5.3c0.8,2.3,3.2,3.5,5.5,2.9"/>
 				</g>
 			</g>
 		</g>

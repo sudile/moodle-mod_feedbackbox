@@ -40,13 +40,6 @@ use stdClass;
  */
 class text extends responsetype {
     /**
-     * @return string
-     */
-    static public function response_table() {
-        return 'feedbackbox_response_text';
-    }
-
-    /**
      * Provide an array of answer objects from web form data for the question.
      *
      * @param stdClass $responsedata All of the responsedata as an object.
@@ -63,6 +56,68 @@ class text extends responsetype {
             $record->value = $val;
             $answers[] = answer\answer::create_from_data($record);
         }
+        return $answers;
+    }
+
+    /**
+     * Return an array of answers by question/choice for the given response. Must be implemented by the subclass.
+     *
+     * @param int $rid The response id.
+     * @return array
+     * @throws dml_exception
+     */
+    static public function response_select($rid) {
+        global $DB;
+
+        $values = [];
+        $sql = 'SELECT q.id, q.content, a.response as aresponse ' .
+            'FROM {' . static::response_table() . '} a, {feedbackbox_question} q ' .
+            'WHERE a.response_id=? AND a.question_id=q.id ';
+        $records = $DB->get_records_sql($sql, [$rid]);
+        foreach ($records as $qid => $row) {
+            unset($row->id);
+            $row = (array) $row;
+            $newrow = [];
+            foreach ($row as $key => $val) {
+                if (!is_numeric($key)) {
+                    $newrow[] = $val;
+                }
+            }
+            $values[$qid] = $newrow;
+            $val = array_pop($values[$qid]);
+            array_push($values[$qid], $val, $val);
+        }
+
+        return $values;
+    }
+
+    /**
+     * @return string
+     */
+    static public function response_table() {
+        return 'feedbackbox_response_text';
+    }
+
+    /**
+     * Return an array of answer objects by question for the given response id.
+     * THIS SHOULD REPLACE response_select.
+     *
+     * @param int $rid The response id.
+     * @return array array answer
+     * @throws dml_exception
+     */
+    static public function response_answers_by_question($rid) {
+        global $DB;
+
+        $answers = [];
+        $sql = 'SELECT id, response_id as responseid, question_id as questionid, 0 as choiceid, response as value ' .
+            'FROM {' . static::response_table() . '} ' .
+            'WHERE response_id = ? ';
+        $records = $DB->get_records_sql($sql, [$rid]);
+        foreach ($records as $record) {
+            $answers[$record->questionid][] = answer\answer::create_from_data($record);
+        }
+
         return $answers;
     }
 
@@ -96,6 +151,29 @@ class text extends responsetype {
     }
 
     /**
+     * @param bool   $rids
+     * @param string $sort
+     * @param bool   $anonymous
+     * @return string
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function display_results($rids = false, $sort = '', $anonymous = false) {
+        $prtotal = 0;
+        if (is_array($rids)) {
+            $prtotal = 1;
+        }
+        if ($rows = $this->get_results($rids, $anonymous)) {
+            $numrespondents = count($rids);
+            $numresponses = count($rows);
+            $pagetags = $this->get_results_tags($rows, $numrespondents, $numresponses, $prtotal);
+        } else {
+            $pagetags = new stdClass();
+        }
+        return $pagetags;
+    }
+
+    /**
      * @param bool $rids
      * @param bool $anonymous
      * @return array
@@ -104,7 +182,7 @@ class text extends responsetype {
      */
     public function get_results($rids = false, $anonymous = false) {
         global $DB;
-
+        $params = [];
         $rsql = '';
         if (!empty($rids)) {
             list($rsql, $params) = $DB->get_in_or_equal($rids);
@@ -135,44 +213,6 @@ class text extends responsetype {
     }
 
     /**
-     * Provide a template for results screen if defined.
-     *
-     * @param bool $pdf
-     * @return mixed The template string or false/
-     */
-    public function results_template($pdf = false) {
-        if ($pdf) {
-            return 'mod_feedbackbox/resultspdf_text';
-        } else {
-            return 'mod_feedbackbox/results_text';
-        }
-    }
-
-    /**
-     * @param bool   $rids
-     * @param string $sort
-     * @param bool   $anonymous
-     * @return string
-     * @throws coding_exception
-     * @throws dml_exception
-     */
-    public function display_results($rids = false, $sort = '', $anonymous = false) {
-        if (is_array($rids)) {
-            $prtotal = 1;
-        } else if (is_int($rids)) {
-            $prtotal = 0;
-        }
-        if ($rows = $this->get_results($rids, $anonymous)) {
-            $numrespondents = count($rids);
-            $numresponses = count($rows);
-            $pagetags = $this->get_results_tags($rows, $numrespondents, $numresponses, $prtotal);
-        } else {
-            $pagetags = new stdClass();
-        }
-        return $pagetags;
-    }
-
-    /**
      * Override the results tags function for templates for questions with dates.
      *
      * @param        $weights
@@ -182,43 +222,19 @@ class text extends responsetype {
      * @param string $sort
      * @return stdClass
      * @throws coding_exception
-     * @throws dml_exception
      */
     public function get_results_tags($weights, $participants, $respondents, $showtotals = 1, $sort = '') {
         $pagetags = new stdClass();
         if ($respondents == 0) {
             return $pagetags;
         }
-
         // If array element is an object, outputting non-numeric responses.
         if (is_object(reset($weights))) {
-            global $CFG, $SESSION, $feedbackbox, $DB;
-            $viewsingleresponse = $feedbackbox->capabilities->viewsingleresponse;
-            $nonanonymous = $feedbackbox->respondenttype != 'anonymous';
-            if ($viewsingleresponse && $nonanonymous) {
-                $currentgroupid = '';
-                if (isset($SESSION->feedbackbox->currentgroupid)) {
-                    $currentgroupid = $SESSION->feedbackbox->currentgroupid;
-                }
-                $url = $CFG->wwwroot . '/mod/feedbackbox/report.php?action=vresp&amp;sid=' . $feedbackbox->survey->id .
-                    '&currentgroupid=' . $currentgroupid;
-            }
-            $users = [];
             $evencolor = false;
             foreach ($weights as $row) {
                 $response = new stdClass();
                 $response->text = format_text($row->response, FORMAT_HTML);
-                if ($viewsingleresponse && $nonanonymous) {
-                    $rurl = $url . '&amp;rid=' . $row->rid . '&amp;individualresponse=1';
-                    $title = userdate($row->submitted);
-                    if (!isset($users[$row->userid])) {
-                        $users[$row->userid] = $DB->get_record('user', ['id' => $row->userid]);
-                    }
-                    $response->respondent = '<a href="' . $rurl . '" title="' . $title . '">' .
-                        fullname($users[$row->userid]) . '</a>';
-                } else {
-                    $response->respondent = '';
-                }
+                $response->respondent = '';
                 // The 'evencolor' attribute is used by the PDF template.
                 $response->evencolor = $evencolor;
                 $pagetags->responses[] = (object) ['response' => $response];
@@ -274,61 +290,6 @@ class text extends responsetype {
         }
 
         return $pagetags;
-    }
-
-    /**
-     * Return an array of answers by question/choice for the given response. Must be implemented by the subclass.
-     *
-     * @param int $rid The response id.
-     * @return array
-     * @throws dml_exception
-     */
-    static public function response_select($rid) {
-        global $DB;
-
-        $values = [];
-        $sql = 'SELECT q.id, q.content, a.response as aresponse ' .
-            'FROM {' . static::response_table() . '} a, {feedbackbox_question} q ' .
-            'WHERE a.response_id=? AND a.question_id=q.id ';
-        $records = $DB->get_records_sql($sql, [$rid]);
-        foreach ($records as $qid => $row) {
-            unset($row->id);
-            $row = (array) $row;
-            $newrow = [];
-            foreach ($row as $key => $val) {
-                if (!is_numeric($key)) {
-                    $newrow[] = $val;
-                }
-            }
-            $values[$qid] = $newrow;
-            $val = array_pop($values[$qid]);
-            array_push($values[$qid], $val, $val);
-        }
-
-        return $values;
-    }
-
-    /**
-     * Return an array of answer objects by question for the given response id.
-     * THIS SHOULD REPLACE response_select.
-     *
-     * @param int $rid The response id.
-     * @return array array answer
-     * @throws dml_exception
-     */
-    static public function response_answers_by_question($rid) {
-        global $DB;
-
-        $answers = [];
-        $sql = 'SELECT id, response_id as responseid, question_id as questionid, 0 as choiceid, response as value ' .
-            'FROM {' . static::response_table() . '} ' .
-            'WHERE response_id = ? ';
-        $records = $DB->get_records_sql($sql, [$rid]);
-        foreach ($records as $record) {
-            $answers[$record->questionid][] = answer\answer::create_from_data($record);
-        }
-
-        return $answers;
     }
 
     /**

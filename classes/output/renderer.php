@@ -25,8 +25,6 @@
 
 namespace mod_feedbackbox\output;
 
-use coding_exception;
-use core\output\notification;
 use flexible_table;
 use html_writer;
 use mod_feedbackbox\question\question;
@@ -119,13 +117,6 @@ class renderer extends plugin_renderer_base {
         if (($template = $question->question_template())) {
             $pagetags->qformelement = $this->render_from_template($template, $pagetags->qformelement);
         }
-
-        // Calling "question_output" may generate per question notifications. If present, add them to the question output.
-        if (($notifications = $question->get_notifications()) !== false) {
-            foreach ($notifications as $notification) {
-                $pagetags->notifications = $this->notification($notification, notification::NOTIFY_ERROR);
-            }
-        }
         if ($question->type_id == 5) { // Used to set the display type.
             $key = strip_tags($question->content);
             $icons = [
@@ -142,37 +133,6 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Render a print/preview page number line.
-     *
-     * @param string $content The content to render.
-     * @return string The rendered HTML.
-     */
-    public function print_preview_pagenumber($content) {
-        return html_writer::tag('div', $content, ['class' => 'surveyPage']);
-    }
-
-    /**
-     * Render the print/preview completion form end HTML.
-     *
-     * @param string $url       The url to call.
-     * @param string $submitstr The submit text.
-     * @param string $resetstr  The reset text.
-     * @return string The output for the page.
-     */
-    public function print_preview_formend($url, $submitstr, $resetstr) {
-        $output = '';
-        $output .= html_writer::start_tag('div');
-        $output .= html_writer::empty_tag('input',
-            ['type' => 'submit', 'name' => 'submit', 'value' => $submitstr,
-                'class' => 'btn btn-primary']);
-        $output .= ' ';
-        $output .= html_writer::tag('a', $resetstr, ['href' => $url, 'class' => 'btn btn-secondary mr-1']);
-        $output .= html_writer::end_tag('div') . "\n";
-        $output .= html_writer::end_tag('form') . "\n";
-        return $output;
-    }
-
-    /**
      * Render the back to home link on the save page.
      *
      * @param string $url  The url to link to.
@@ -185,47 +145,6 @@ class renderer extends plugin_renderer_base {
         $output .= html_writer::tag('a', $text, ['href' => $url, 'class' => 'btn btn-primary']);
         $output .= html_writer::end_tag('div');
         return $output;
-    }
-
-
-    /**
-     * Get displayable list of parents for the question in questions_form.
-     *
-     * @param $qid          int The question id.
-     * @param $dependencies array of dependency records for a question.
-     * @return string
-     * @throws coding_exception
-     */
-    public function get_dependency_html($qid, $dependencies) {
-        $html = '';
-        foreach ($dependencies as $dependency) {
-            switch ($dependency->dependlogic) {
-                case 0:
-                    $logic = get_string('notset', 'feedbackbox');
-                    break;
-                case 1:
-                    $logic = get_string('set', 'feedbackbox');
-                    break;
-                default:
-                    $logic = '';
-            }
-
-            // TODO - Move the HTML generation to the renderer.
-            if ($dependency->dependandor == "and") {
-                $html .= '<div id="qdepend_' . $qid . '_' . $dependency->dependquestionid . '_' .
-                    $dependency->dependchoiceid . '" class="qdepend">' . '<strong>' .
-                    get_string('dependquestion', 'feedbackbox') . '</strong> : ' . get_string('position',
-                        'feedbackbox') . ' ' .
-                    $dependency->parentposition . ' (' . $dependency->parent . ') ' . $logic . '</div>';
-            } else {
-                $html .= '<div id="qdepend_or_' . $qid . '_' . $dependency->dependquestionid . '_' .
-                    $dependency->dependchoiceid . '" class="qdepend-or">' . '<strong>' .
-                    get_string('dependquestion', 'feedbackbox') . '</strong> : ' . get_string('position',
-                        'feedbackbox') . ' ' .
-                    $dependency->parentposition . ' (' . $dependency->parent . ') ' . $logic . '</div>';
-            }
-        }
-        return $html;
     }
 
     /**

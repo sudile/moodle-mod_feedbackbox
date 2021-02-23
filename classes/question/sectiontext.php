@@ -23,19 +23,15 @@
  */
 
 namespace mod_feedbackbox\question;
+
 use dml_exception;
+use feedbackbox;
+use mod_feedbackbox\output\reportpage;
 use mod_feedbackbox\responsetype\response\response;
 
 defined('MOODLE_INTERNAL') || die();
 
 class sectiontext extends question {
-
-    /**
-     * @return object|string
-     */
-    protected function responseclass() {
-        return '';
-    }
 
     /**
      * @return string
@@ -54,27 +50,6 @@ class sectiontext extends question {
     }
 
     /**
-     * True if question type supports feedback options. False by default.
-     */
-    public function supports_feedback() {
-        return true;
-    }
-
-    /**
-     * True if question type supports feedback scores and weights. Same as supports_feedback() by default.
-     */
-    public function supports_feedback_scores() {
-        return false;
-    }
-
-    /**
-     * True if the question supports feedback and has valid settings for feedback. Override if the default logic is not enough.
-     */
-    public function valid_feedback() {
-        return true;
-    }
-
-    /**
      * Override and return a form template if provided. Output of question_survey_display is iterpreted based on this.
      *
      * @return boolean | string
@@ -84,9 +59,26 @@ class sectiontext extends question {
     }
 
     /**
+     * Check question's form data for complete response.
+     *
+     * @param object $responsedata The data entered into the response.
+     * @return boolean
+     */
+    public function response_complete($responsedata) {
+        return true;
+    }
+
+    /**
+     * @return object|string
+     */
+    protected function responseclass() {
+        return '';
+    }
+
+    /**
      * Return the context tags for the check question template.
      *
-     * @param response $response
+     * @param response                                        $response
      * @param                                                 $descendantsdata
      * @param boolean                                         $blankfeedbackbox
      * @return object|string
@@ -98,51 +90,7 @@ class sectiontext extends question {
         if (!isset($response->feedbackboxid)) {
             return '';
         }
-
-        $fbsections = $DB->get_records('feedbackbox_fb_sections', ['surveyid' => $this->surveyid]);
-        $filteredsections = [];
-
-        // In which section(s) is this question?
-        foreach ($fbsections as $key => $fbsection) {
-            $scorecalculation = unserialize($fbsection->scorecalculation);
-            if (array_key_exists($this->id, $scorecalculation)) {
-                array_push($filteredsections, $fbsection->section);
-            }
-        }
-
-        // If empty then normal behavior as sectiontext question.
-        if (empty($filteredsections)) {
-            return '';
-        }
-        list($cm, $course, $feedbackbox) = feedbackbox_get_standard_page_items(null, $response->feedbackboxid);
-        $feedbackbox = new \feedbackbox(0, $feedbackbox, $course, $cm);
-        $feedbackbox->add_renderer($PAGE->get_renderer('mod_feedbackbox'));
-        $feedbackbox->add_page(new \mod_feedbackbox\output\reportpage());
-
-        $compare = false;
-        $allresponses = false;
-        $currentgroupid = 0;
-        $isgroupmember = false;
-        $rid = (isset($response->id) && !empty($response->id)) ? $response->id : 0;
-        $resps = [$rid => null];
-        // For $filteredsections -> get the feedback messages only for this sections!
-        $feedbackmessages = $feedbackbox->response_analysis($rid,
-            $resps,
-            $compare,
-            $isgroupmember,
-            $allresponses,
-            $currentgroupid,
-            $filteredsections);
-
-        // Output.
-        $questiontags = new \stdClass();
-        $questiontags->qelements = new \stdClass();
-        $choice = new \stdClass();
-
-        $choice->fb = implode($feedbackmessages);
-
-        $questiontags->qelements->choice = $choice;
-        return $questiontags;
+        return '';
     }
 
     /**
@@ -151,15 +99,5 @@ class sectiontext extends question {
      */
     protected function response_survey_display($data) {
         return '';
-    }
-
-    /**
-     * Check question's form data for complete response.
-     *
-     * @param object $responsedata The data entered into the response.
-     * @return boolean
-     */
-    public function response_complete($responsedata) {
-        return true;
     }
 }

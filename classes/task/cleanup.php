@@ -24,19 +24,30 @@
 
 namespace mod_feedbackbox\task;
 
+use coding_exception;
+use core\task\scheduled_task;
+use dml_exception;
+use moodle_exception;
+
 defined('MOODLE_INTERNAL') || die();
 
-class cleanup extends \core\task\scheduled_task {
+class cleanup extends scheduled_task {
 
     /**
      * Get a descriptive name for this task (shown to admins).
      *
      * @return string
+     * @throws coding_exception
      */
     public function get_name() {
         return get_string('crontask', 'mod_feedbackbox');
     }
 
+    /**
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
     public function execute() {
         global $CFG;
         require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');

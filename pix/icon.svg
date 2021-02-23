@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 65 65" style="enable-background:new 0 0 65 65;" xml:space="preserve">
+<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" x="0px"
+     y="0px"
+     viewBox="0 0 65 65" style="enable-background:new 0 0 65 65;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#FFBC50;}
 	.st1{fill:#FD980F;}
 	.st2{fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
 </style>
-<g id="Gruppe_88" transform="translate(2341.875 -3492.466)">
+    <g id="Gruppe_88" transform="translate(2341.875 -3492.466)">
 	<g id="Gruppe_87" transform="translate(-2216.948 675.048)">
 		<g id="Gruppe_69" transform="translate(-126 2635)">
 			<g id="_1F63B" transform="translate(3 188.25)">
@@ -15,24 +16,25 @@
 					<path id="Pfad_178" class="st0" d="M53.2,40.6C49.6,49.7,40.6,55.8,30,55.8c-9.1,0-19.2-5.8-22.8-15l-0.4-1.2
 						C5.7,36.7,6,34.1,6,30.9L9.8-1.5L20,8.6c3-1.3,6.2-1.9,9.5-1.9h1.1c3.3,0,6.5,0.7,9.5,1.9L51.3-2.5L55,31.4
 						C55,34.5,54.4,37.7,53.2,40.6"/>
-					<path id="Pfad_179" class="st1" d="M30,55.8c10.6,0.3,20.3-6,23.9-15.1l0.1-0.2c1.2-3.2,1.2-6.7,1.3-10.2L51.5-2.4"/>
+                    <path id="Pfad_179" class="st1"
+                          d="M30,55.8c10.6,0.3,20.3-6,23.9-15.1l0.1-0.2c1.2-3.2,1.2-6.7,1.3-10.2L51.5-2.4"/>
 				</g>
-				<g id="line">
+                <g id="line">
 					<line id="Linie_71" class="st2" x1="56.6" y1="45.8" x2="47.1" y2="40.8"/>
-					<path id="Pfad_183" class="st2" d="M47.2,38.7"/>
-					<path id="Pfad_184" class="st2" d="M56.5,43.9"/>
-					<line id="Linie_72" class="st2" x1="52.4" y1="51.1" x2="43" y2="45.9"/>
-					<path id="Pfad_185" class="st2" d="M40.9,47"/>
-					<path id="Pfad_186" class="st2" d="M50.3,52.2"/>
-					<path id="Pfad_187" class="st2" d="M7.9,39.8c-1.1-2.8-1.7-5.9-1.7-8.9L9.8-1.9l11,10.7C23.7,7.6,26.8,7,30,7h1
+                    <path id="Pfad_183" class="st2" d="M47.2,38.7"/>
+                    <path id="Pfad_184" class="st2" d="M56.5,43.9"/>
+                    <line id="Linie_72" class="st2" x1="52.4" y1="51.1" x2="43" y2="45.9"/>
+                    <path id="Pfad_185" class="st2" d="M40.9,47"/>
+                    <path id="Pfad_186" class="st2" d="M50.3,52.2"/>
+                    <path id="Pfad_187" class="st2" d="M7.9,39.8c-1.1-2.8-1.7-5.9-1.7-8.9L9.8-1.9l11,10.7C23.7,7.6,26.8,7,30,7h1
 						c3.2,0,6.4,0.6,9.3,1.9l11-10.7L55,30.9c0,3.1-0.6,6.1-1.7,8.9"/>
-					<path id="Pfad_188" class="st2" d="M17.4,51.2c3.8,2.4,8.2,3.6,12.6,3.6h1c4.5,0,8.9-1.2,12.6-3.6"/>
-					<line id="Linie_73" class="st2" x1="4.6" y1="45.9" x2="13.9" y2="40.7"/>
-					<path id="Pfad_189" class="st2" d="M13.9,38.7"/>
-					<line id="Linie_74" class="st2" x1="8.7" y1="51.1" x2="18.1" y2="45.9"/>
-					<path id="Pfad_190" class="st2" d="M20.2,47"/>
-					<path id="Pfad_191" class="st2" d="M10.8,52.2"/>
-					<path id="Pfad_193" class="st2" d="M57.6,44"/>
+                    <path id="Pfad_188" class="st2" d="M17.4,51.2c3.8,2.4,8.2,3.6,12.6,3.6h1c4.5,0,8.9-1.2,12.6-3.6"/>
+                    <line id="Linie_73" class="st2" x1="4.6" y1="45.9" x2="13.9" y2="40.7"/>
+                    <path id="Pfad_189" class="st2" d="M13.9,38.7"/>
+                    <line id="Linie_74" class="st2" x1="8.7" y1="51.1" x2="18.1" y2="45.9"/>
+                    <path id="Pfad_190" class="st2" d="M20.2,47"/>
+                    <path id="Pfad_191" class="st2" d="M10.8,52.2"/>
+                    <path id="Pfad_193" class="st2" d="M57.6,44"/>
 				</g>
 			</g>
 		</g>

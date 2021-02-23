@@ -71,15 +71,17 @@
 </div>
 <br/>
 {{#qelements}}
-{{#choice}}
-{{#choice.horizontal}}<span style="white-space:nowrap;">{{/choice.horizontal}}
-<input id="{{choice.id}}" class="feedbackrateradio" value="{{choice.value}}" name="{{choice.name}}" type="radio" {{#choice.checked}}checked="checked"{{/choice.checked}} {{#choice.disabled}}disabled="disabled"{{/choice.disabled}} {{#choice.onclick}}onclick="{{choice.onclick}}"{{/choice.onclick}}/>
-<label for="{{choice.id}}">
+    {{#choice}}
+        {{#choice.horizontal}}<span style="white-space:nowrap;">{{/choice.horizontal}}
+            <input id="{{choice.id}}" class="feedbackrateradio" value="{{choice.value}}" name="{{choice.name}}"
+                   type="radio"
+                   {{#choice.checked}}checked="checked"{{/choice.checked}} {{#choice.disabled}}disabled="disabled"{{/choice.disabled}} {{#choice.onclick}}onclick="{{choice.onclick}}"{{/choice.onclick}}/>
+            <label for="{{choice.id}}">
     <div class="ratesubelements">{{# pix }} {{piximage}}, mod_feedbackbox, Icon{{/ pix }}</div>
     <div class="ratesubelements">{{{choice.label}}}</div>
 </label>
-{{#choice.horizontal}}</span>{{/choice.horizontal}}
-{{^choice.horizontal}}<br />{{/choice.horizontal}}
-{{/choice}}
+        {{#choice.horizontal}}</span>{{/choice.horizontal}}
+        {{^choice.horizontal}}<br/>{{/choice.horizontal}}
+    {{/choice}}
 {{/qelements}}
 <!-- End HTML generated from question_radio template. -->

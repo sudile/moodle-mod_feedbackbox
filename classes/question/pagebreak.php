@@ -31,13 +31,6 @@ defined('MOODLE_INTERNAL') || die();
 class pagebreak extends question {
 
     /**
-     * @return object|string
-     */
-    protected function responseclass() {
-        return '';
-    }
-
-    /**
      * @return string
      */
     public function helpname() {
@@ -50,6 +43,22 @@ class pagebreak extends question {
      * @return stdClass|string
      */
     public function questionstart_survey_display($qnum, $response = null) {
+        return '';
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return false;
+    }
+
+    /**
+     * @return object|string
+     */
+    protected function responseclass() {
         return '';
     }
 
@@ -69,15 +78,6 @@ class pagebreak extends question {
      */
     protected function response_survey_display($data) {
         return '';
-    }
-
-    /**
-     * True if question provides mobile support.
-     *
-     * @return bool
-     */
-    public function supports_mobile() {
-        return false;
     }
 
 }

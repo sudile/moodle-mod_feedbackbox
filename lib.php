@@ -23,32 +23,30 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_calendar\action_factory;
+use core_calendar\local\event\entities\action_interface;
+use core_completion\api;
 use mod_feedbackbox\feedbackbox;
 
 defined('MOODLE_INTERNAL') || die();
 
-define('FEEDBACKBOX_RESETFORM_RESET', 'feedbackbox_reset_data_');
-define('FEEDBACKBOX_RESETFORM_DROP', 'feedbackbox_drop_feedbackbox_');
-
-
+/**
+ * Get FeedbackBox Supports
+ *
+ * @param $feature
+ * @return bool|null
+ */
 function feedbackbox_supports($feature) {
     switch ($feature) {
-        case FEATURE_BACKUP_MOODLE2:
-            return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS:
-            return false;
-        case FEATURE_COMPLETION_HAS_RULES:
-            return true;
         case FEATURE_GRADE_HAS_GRADE:
-            return false;
         case FEATURE_GRADE_OUTCOMES:
-            return false;
         case FEATURE_GROUPINGS:
-            return true;
         case FEATURE_GROUPS:
-            return true;
+            return false;
+        case FEATURE_BACKUP_MOODLE2:
+        case FEATURE_COMPLETION_HAS_RULES:
         case FEATURE_MOD_INTRO:
-            return true;
         case FEATURE_SHOW_DESCRIPTION:
             return true;
         default:
@@ -56,12 +54,21 @@ function feedbackbox_supports($feature) {
     }
 }
 
+/**
+ * Dynamic course module description to display the time spans
+ *
+ * @param cm_info $cm
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
+ * @noinspection PhpUnused
+ */
 function feedbackbox_cm_info_dynamic(cm_info $cm) {
-    GLOBAL $CFG, $DB, $COURSE; // Required by include once.
+    GLOBAL $DB, $COURSE; // Required by include once.
     if ($COURSE->id == $cm->course) { // Avoid performance issues.
-        $cousem = get_coursemodule_from_instance("feedbackbox", $cm->instance, $cm->course);
+        $cousem = get_coursemodule_from_instance('feedbackbox', $cm->instance, $cm->course);
         $feedbackbox = new feedbackbox(0,
-            $DB->get_record("feedbackbox", ["id" => $cousem->instance]),
+            $DB->get_record('feedbackbox', ['id' => $cousem->instance]),
             $cousem->course,
             $cousem);
         $zone = $feedbackbox->get_current_turnus();
@@ -82,18 +89,40 @@ function feedbackbox_cm_info_dynamic(cm_info $cm) {
     }
 }
 
+
 /**
  * @return array all other caps used in module
+ * @noinspection PhpUnused
  */
 function feedbackbox_get_extra_capabilities() {
     return ['moodle/site:accessallgroups'];
 }
 
+/**
+ * @param $feedbackboxid
+ * @return mixed
+ * @throws dml_exception
+ * @noinspection PhpUnused
+ */
 function feedbackbox_get_instance($feedbackboxid) {
     global $DB;
     return $DB->get_record('feedbackbox', ['id' => $feedbackboxid]);
 }
 
+
+/**
+ * Create a new private survey with a new feedbackbox instance
+ *
+ * @param $courseid
+ * @param $turnus
+ * @param $start
+ * @param $end
+ * @param $intro
+ * @param $notifystudents
+ * @return bool|int
+ * @throws dml_exception
+ * @throws coding_exception
+ */
 function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intro, $notifystudents) {
     GLOBAL $DB;
 
@@ -101,19 +130,8 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
     $survey = new stdClass();
     $survey->name = 'Feedback Box';
     $survey->courseid = $courseid;
-    $survey->realm = 'private';
     $survey->status = 0;
     $survey->title = 'Feedback Box';
-    $survey->email = '';
-    $survey->subtitle = '';
-    $survey->info = '';
-    $survey->theme = '';
-    $survey->thanks_page = '';
-    $survey->thank_head = '';
-    $survey->thank_body = '';
-    $survey->feedbacksections = 0;
-    $survey->feedbacknotes = '';
-    $survey->feedbackscores = 0;
     $surveyid = $DB->insert_record('feedbackbox_survey', $survey);
 
     // Create Feedbackbox.
@@ -122,16 +140,11 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
     $feedbackbox->name = 'Feedback Box';
     $feedbackbox->intro = $intro;
     $feedbackbox->introformat = 1;
-    $feedbackbox->qtype = 3;
     $feedbackbox->respondenttype = 'anonymous';
-    $feedbackbox->resp_eligible = 'all';
-    $feedbackbox->resp_view = 1;
     $feedbackbox->notifications = 0;
     $feedbackbox->opendate = $start;
     $feedbackbox->closedate = $end;
     $feedbackbox->resume = 0;
-    $feedbackbox->navigate = 0;
-    $feedbackbox->grade = 0;
     $feedbackbox->turnus = $turnus;
     $feedbackbox->sid = $surveyid;
     $feedbackbox->notifystudents = $notifystudents;
@@ -296,6 +309,21 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
     return $feedbackboxid;
 }
 
+/**
+ *
+ * @param int    $surveyid
+ * @param string $name
+ * @param int    $type
+ * @param int    $length
+ * @param int    $precise
+ * @param int    $position
+ * @param string $content
+ * @param string $required
+ * @param string $deleted
+ * @param array  $choices
+ * @throws coding_exception
+ * @throws dml_exception
+ */
 function create_feedbackbox_question($surveyid,
     $name,
     $type,
@@ -330,6 +358,13 @@ function create_feedbackbox_question($surveyid,
     }
 }
 
+/**
+ * @param $feedbackbox
+ * @return bool|int
+ * @throws coding_exception
+ * @throws dml_exception
+ * @noinspection PhpUnused
+ */
 function feedbackbox_add_instance($feedbackbox) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
@@ -344,14 +379,17 @@ function feedbackbox_add_instance($feedbackbox) {
         $feedbackbox->notifystudents);
 }
 
+/**
+ * @param $feedbackbox
+ * @return bool
+ * @throws dml_exception
+ * @noinspection PhpUnused
+ */
 function feedbackbox_update_instance($feedbackbox) {
     global $DB, $CFG;
     require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
     $feedbackboxorg = $DB->get_record('feedbackbox', ['id' => $feedbackbox->instance]);
     // Check the realm and set it to the survey if its set.
-    if (!empty($feedbackbox->sid) && !empty($feedbackbox->realm)) {
-        $DB->set_field('feedbackbox_survey', 'realm', $feedbackbox->realm, ['id' => $feedbackbox->sid]);
-    }
     $feedbackboxorg->timemodified = time();
     $feedbackboxorg->turnus = $feedbackbox->turnus;
     // $feedbackboxorg->opendate = $feedbackbox->opendate;
@@ -366,7 +404,7 @@ function feedbackbox_update_instance($feedbackbox) {
     $feedbackbox->id = $feedbackboxorg->id;
     // Get existing grade item.
     $completiontimeexpected = !empty($feedbackbox->completionexpected) ? $feedbackbox->completionexpected : null;
-    \core_completion\api::update_completion_date_event($feedbackbox->coursemodule,
+    api::update_completion_date_event($feedbackbox->coursemodule,
         'feedbackbox',
         $feedbackboxorg->id,
         $completiontimeexpected);
@@ -374,9 +412,18 @@ function feedbackbox_update_instance($feedbackbox) {
     return $DB->update_record("feedbackbox", $feedbackboxorg);
 }
 
-// Given an ID of an instance of this module,
-// this function will permanently delete the instance
-// and any data that depends on it.
+/**
+ * Given an ID of an instance of this module,
+ * this function will permanently delete the instance
+ * and any data that depends on it.
+ *
+ * @param $id
+ * @return bool
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
+ * @noinspection PhpUnused
+ */
 function feedbackbox_delete_instance($id) {
     global $DB, $CFG;
     require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
@@ -411,15 +458,22 @@ function feedbackbox_delete_instance($id) {
     return $result;
 }
 
-// Return a small object with summary information about what a
-// user has done with a given particular instance of this module
-// Used for user activity reports.
-// $return->time = the time they did it
-// $return->info = a short text description.
 /**
+ * Return a small object with summary information about what a
+ * user has done with a given particular instance of this module
+ * Used for user activity reports.
+ * $return->time = the time they did it
+ * $return->info = a short text description.
  * $course and $mod are unused, but API requires them. Suppress PHPMD warning.
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param $course
+ * @param $user
+ * @param $mod
+ * @param $feedbackbox
+ * @return stdClass
+ * @throws coding_exception
+ * @throws dml_exception
+ * @noinspection PhpUnused
  */
 function feedbackbox_user_outline($course, $user, $mod, $feedbackbox) {
     global $CFG;
@@ -441,12 +495,19 @@ function feedbackbox_user_outline($course, $user, $mod, $feedbackbox) {
     return $result;
 }
 
-// Print a detailed representation of what a  user has done with
-// a given particular instance of this module, for user activity reports.
 /**
+ * Print a detailed representation of what a  user has done with
+ * a given particular instance of this module, for user activity reports.
  * $course and $mod are unused, but API requires them. Suppress PHPMD warning.
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param $course
+ * @param $user
+ * @param $mod
+ * @param $feedbackbox
+ * @return bool
+ * @throws coding_exception
+ * @throws dml_exception
+ * @noinspection PhpUnused
  */
 function feedbackbox_user_complete($course, $user, $mod, $feedbackbox) {
     global $CFG;
@@ -468,195 +529,6 @@ function feedbackbox_user_complete($course, $user, $mod, $feedbackbox) {
     return true;
 }
 
-// Given a course and a time, this module should find recent activity
-// that has occurred in feedbackbox activities and print it out.
-// Return true if there was output, or false is there was none.
-/**
- * $course, $isteacher and $timestart are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
- */
-function feedbackbox_print_recent_activity($course, $isteacher, $timestart) {
-    return false;  // True if anything was printed, otherwise false.
-}
-
-// Must return an array of grades for a given instance of this module,
-// indexed by user.  It also returns a maximum allowed grade.
-/**
- * $feedbackboxid is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
- */
-function feedbackbox_grades($feedbackboxid) {
-    return null;
-}
-
-/**
- * Return grade for given user or all users.
- *
- * @param int $feedbackboxid id of assignment
- * @param int $userid        optional user id, 0 means all users
- * @return array array of grades, false if none
- */
-function feedbackbox_get_user_grades($feedbackbox, $userid = 0) {
-    global $DB;
-    $params = [];
-    $usersql = '';
-    if (!empty($userid)) {
-        $usersql = "AND u.id = ?";
-        $params[] = $userid;
-    }
-
-    $sql = "SELECT r.id, u.id AS userid, r.grade AS rawgrade, r.submitted AS dategraded, r.submitted AS datesubmitted
-            FROM {user} u, {feedbackbox_response} r
-            WHERE u.id = r.userid AND r.feedbackboxid = $feedbackbox->id AND r.complete = 'y' $usersql";
-    return $DB->get_records_sql($sql, $params);
-}
-
-/**
- * Update grades by firing grade_updated event
- *
- * @param object $assignment null means all assignments
- * @param int    $userid     specific user only, 0 mean all
- *
- * $nullifnone is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
- */
-function feedbackbox_update_grades($feedbackbox = null, $userid = 0, $nullifnone = true) {
-    global $CFG, $DB;
-
-    if (!function_exists('grade_update')) { // Workaround for buggy PHP versions.
-        require_once($CFG->libdir . '/gradelib.php');
-    }
-
-    if ($feedbackbox != null) {
-        if ($graderecs = feedbackbox_get_user_grades($feedbackbox, $userid)) {
-            $grades = [];
-            foreach ($graderecs as $v) {
-                if (!isset($grades[$v->userid])) {
-                    $grades[$v->userid] = new stdClass();
-                    if ($v->rawgrade == -1) {
-                        $grades[$v->userid]->rawgrade = null;
-                    } else {
-                        $grades[$v->userid]->rawgrade = $v->rawgrade;
-                    }
-                    $grades[$v->userid]->userid = $v->userid;
-                } else if (isset($grades[$v->userid]) && ($v->rawgrade > $grades[$v->userid]->rawgrade)) {
-                    $grades[$v->userid]->rawgrade = $v->rawgrade;
-                }
-            }
-            feedbackbox_grade_item_update($feedbackbox, $grades);
-        } else {
-            feedbackbox_grade_item_update($feedbackbox);
-        }
-
-    } else {
-        $sql = "SELECT q.*, cm.idnumber as cmidnumber, q.course as courseid
-                  FROM {feedbackbox} q, {course_modules} cm, {modules} m
-                 WHERE m.name='feedbackbox' AND m.id=cm.module AND cm.instance=q.id";
-        if ($rs = $DB->get_recordset_sql($sql)) {
-            foreach ($rs as $feedbackbox) {
-                if ($feedbackbox->grade != 0) {
-                    feedbackbox_update_grades($feedbackbox);
-                } else {
-                    feedbackbox_grade_item_update($feedbackbox);
-                }
-            }
-            $rs->close();
-        }
-    }
-}
-
-/**
- * Create grade item for given feedbackbox
- *
- * @param object $feedbackbox object with extra cmidnumber
- * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
- * @return int 0 if ok, error code otherwise
- */
-function feedbackbox_grade_item_update($feedbackbox, $grades = null) {
-    global $CFG;
-    if (!function_exists('grade_update')) { // Workaround for buggy PHP versions.
-        require_once($CFG->libdir . '/gradelib.php');
-    }
-
-    if (!isset($feedbackbox->courseid)) {
-        $feedbackbox->courseid = $feedbackbox->course;
-    }
-
-    if ($feedbackbox->cmidnumber != '') {
-        $params = ['itemname' => $feedbackbox->name, 'idnumber' => $feedbackbox->cmidnumber];
-    } else {
-        $params = ['itemname' => $feedbackbox->name];
-    }
-
-    if ($feedbackbox->grade > 0) {
-        $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax'] = $feedbackbox->grade;
-        $params['grademin'] = 0;
-
-    } else if ($feedbackbox->grade < 0) {
-        $params['gradetype'] = GRADE_TYPE_SCALE;
-        $params['scaleid'] = -$feedbackbox->grade;
-
-    } else if ($feedbackbox->grade == 0) { // No Grade..be sure to delete the grade item if it exists.
-        $grades = null;
-        $params = ['deleted' => 1];
-
-    } else {
-        $params = null; // Allow text comments only.
-    }
-
-    if ($grades === 'reset') {
-        $params['reset'] = true;
-        $grades = null;
-    }
-
-    return grade_update('mod/feedbackbox',
-        $feedbackbox->courseid,
-        'mod',
-        'feedbackbox',
-        $feedbackbox->id,
-        0,
-        $grades,
-        $params);
-}
-
-/**
- * This function returns if a scale is being used by one feedbackbox
- * it it has support for grading and scales. Commented code should be
- * modified if necessary. See forum, glossary or journal modules
- * as reference.
- *
- * @param $feedbackboxid int
- * @param $scaleid       int
- * @return boolean True if the scale is used by any feedbackbox
- *
- * Function parameters are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
- */
-function feedbackbox_scale_used($feedbackboxid, $scaleid) {
-    return false;
-}
-
-/**
- * Checks if scale is being used by any instance of feedbackbox
- *
- * This is used to find out if scale used anywhere
- *
- * @param $scaleid int
- * @return boolean True if the scale is used by any feedbackbox
- *
- * Function parameters are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
- */
-function feedbackbox_scale_used_anywhere($scaleid) {
-    return false;
-}
-
 /**
  * Serves the feedbackbox attachments. Implements needed access control ;-)
  *
@@ -670,7 +542,9 @@ function feedbackbox_scale_used_anywhere($scaleid) {
  *
  * $forcedownload is unused, but API requires it. Suppress PHPMD warning.
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @throws coding_exception
+ * @throws dml_exception
+ * @noinspection PhpUnused
  */
 function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
     global $DB;
@@ -681,7 +555,7 @@ function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $force
 
     require_course_login($course, true, $cm);
 
-    $fileareas = ['intro', 'info', 'thankbody', 'question', 'feedbacknotes', 'sectionheading', 'feedback'];
+    $fileareas = ['intro', 'info', 'question', 'sectionheading'];
     if (!in_array($filearea, $fileareas)) {
         return false;
     }
@@ -690,14 +564,6 @@ function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $force
 
     if ($filearea == 'question') {
         if (!$DB->record_exists('feedbackbox_question', ['id' => $componentid])) {
-            return false;
-        }
-    } else if ($filearea == 'sectionheading') {
-        if (!$DB->record_exists('feedbackbox_fb_sections', ['id' => $componentid])) {
-            return false;
-        }
-    } else if ($filearea == 'feedback') {
-        if (!$DB->record_exists('feedbackbox_feedback', ['id' => $componentid])) {
             return false;
         }
     } else {
@@ -721,22 +587,13 @@ function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $force
     send_stored_file($file, 0, 0, true); // Download MUST be forced - security!
 }
 
-// Any other feedbackbox functions go here.  Each of them must have a name that
-// starts with feedbackbox_.
-
-function feedbackbox_get_view_actions() {
-    return ['view', 'view all'];
-}
-
-function feedbackbox_get_post_actions() {
-    return ['submit', 'update'];
-}
 
 /**
  * Implementation of the function for printing the form elements that control
  * whether the course reset functionality affects the feedbackbox.
  *
- * @param $mform the course reset form that is being built.
+ * @param $mform MoodleQuickForm the course reset form that is being built.
+ * @throws coding_exception
  */
 function feedbackbox_reset_course_form_definition($mform) {
     $mform->addElement('header', 'feedbackboxheader', get_string('modulenameplural', 'feedbackbox'));
@@ -745,14 +602,14 @@ function feedbackbox_reset_course_form_definition($mform) {
         get_string('removeallfeedbackboxattempts', 'feedbackbox'));
 }
 
+
 /**
  * Course reset form defaults.
- *
- * @return array the defaults.
- *
  * Function parameters are unused, but API requires them. Suppress PHPMD warning.
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param $course
+ * @return array
+ * @noinspection PhpUnused
  */
 function feedbackbox_reset_course_form_defaults($course) {
     return ['reset_feedbackbox' => 1];
@@ -764,6 +621,9 @@ function feedbackbox_reset_course_form_defaults($course) {
  *
  * @param object $data the data submitted from the reset course.
  * @return array status array
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
  */
 function feedbackbox_reset_userdata($data) {
     global $CFG, $DB;
@@ -774,7 +634,7 @@ function feedbackbox_reset_userdata($data) {
     $status = [];
 
     if (!empty($data->reset_feedbackbox)) {
-        $surveys = feedbackbox_get_survey_list($data->courseid, '');
+        $surveys = feedbackbox_get_survey_list($data->courseid);
 
         // Delete responses.
         foreach ($surveys as $survey) {
@@ -792,23 +652,10 @@ function feedbackbox_reset_userdata($data) {
                     feedbackbox_delete_response($response, $feedbackbox);
                 }
             }
-            // Remove this feedbackbox's grades (and feedback) from gradebook (if any).
-            $select = "itemmodule = 'feedbackbox' AND iteminstance = " . $survey->qid;
-            $fields = 'id';
-            if ($itemid = $DB->get_record_select('grade_items', $select, null, $fields)) {
-                $itemid = $itemid->id;
-                $DB->delete_records_select('grade_grades', 'itemid = ' . $itemid);
-
-            }
         }
         $status[] = [
             'component' => $componentstr,
             'item' => get_string('deletedallresp', 'feedbackbox'),
-            'error' => false];
-
-        $status[] = [
-            'component' => $componentstr,
-            'item' => get_string('gradesdeleted', 'feedbackbox'),
             'error' => false];
     }
     return $status;
@@ -826,7 +673,8 @@ function feedbackbox_reset_userdata($data) {
  *
  * $course is unused, but API requires it. Suppress PHPMD warning.
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @throws dml_exception
+ * @noinspection PhpUnused
  */
 function feedbackbox_get_completion_state($course, $cm, $userid, $type) {
     global $DB;
@@ -850,15 +698,17 @@ function feedbackbox_get_completion_state($course, $cm, $userid, $type) {
  * This is used by block_myoverview in order to display the event appropriately. If null is returned then the event
  * is not displayed on the block.
  *
- * @param calendar_event                $event
- * @param \core_calendar\action_factory $factory
- * @return \core_calendar\local\event\entities\action_interface|null
+ * @param calendar_event $event
+ * @param action_factory $factory
+ * @return action_interface|null
+ * @throws coding_exception
+ * @throws moodle_exception
  */
 function mod_feedbackbox_core_calendar_provide_event_action(calendar_event $event,
-    \core_calendar\action_factory $factory) {
+    action_factory $factory) {
     $cm = get_fast_modinfo($event->courseid)->instances['feedbackbox'][$event->instance];
 
-    $completion = new \completion_info($cm->get_course());
+    $completion = new completion_info($cm->get_course());
 
     $completiondata = $completion->get_data($cm, false);
 
@@ -868,7 +718,7 @@ function mod_feedbackbox_core_calendar_provide_event_action(calendar_event $even
 
     return $factory->create_instance(
         get_string('view'),
-        new \moodle_url('/mod/feedbackbox/view.php', ['id' => $cm->id]),
+        new moodle_url('/mod/feedbackbox/view.php', ['id' => $cm->id]),
         1,
         true
     );

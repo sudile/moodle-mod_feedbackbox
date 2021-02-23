@@ -26,16 +26,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Install needed DB content
+ *
+ * @throws dml_exception
+ */
 function xmldb_feedbackbox_install() {
     global $DB;
 
-    // Initial insert of mnet applications info.
-    $questiontype = new stdClass();
-    $questiontype->typeid = 1;
-    $questiontype->type = 'Yes/No';
-    $questiontype->has_choices = 'n';
-    $questiontype->response_table = 'response_bool';
-    $id = $DB->insert_record('feedbackbox_question_type', $questiontype);
 
     $questiontype = new stdClass();
     $questiontype->typeid = 2;
@@ -63,34 +61,6 @@ function xmldb_feedbackbox_install() {
     $questiontype->type = 'Check Boxes';
     $questiontype->has_choices = 'y';
     $questiontype->response_table = 'resp_multiple';
-    $id = $DB->insert_record('feedbackbox_question_type', $questiontype);
-
-    $questiontype = new stdClass();
-    $questiontype->typeid = 6;
-    $questiontype->type = 'Dropdown Box';
-    $questiontype->has_choices = 'y';
-    $questiontype->response_table = 'resp_single';
-    $id = $DB->insert_record('feedbackbox_question_type', $questiontype);
-
-    $questiontype = new stdClass();
-    $questiontype->typeid = 8;
-    $questiontype->type = 'Rate (scale 1..5)';
-    $questiontype->has_choices = 'y';
-    $questiontype->response_table = 'response_rank';
-    $id = $DB->insert_record('feedbackbox_question_type', $questiontype);
-
-    $questiontype = new stdClass();
-    $questiontype->typeid = 9;
-    $questiontype->type = 'Date';
-    $questiontype->has_choices = 'n';
-    $questiontype->response_table = 'response_date';
-    $id = $DB->insert_record('feedbackbox_question_type', $questiontype);
-
-    $questiontype = new stdClass();
-    $questiontype->typeid = 10;
-    $questiontype->type = 'Numeric';
-    $questiontype->has_choices = 'n';
-    $questiontype->response_table = 'response_text';
     $id = $DB->insert_record('feedbackbox_question_type', $questiontype);
 
     $questiontype = new stdClass();

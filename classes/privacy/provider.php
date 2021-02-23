@@ -27,12 +27,22 @@ namespace mod_feedbackbox\privacy;
 
 defined('MOODLE_INTERNAL') || die();
 
+use coding_exception;
+use context;
+use context_module;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\core_userlist_provider;
+use core_privacy\local\request\helper;
+use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
+use core_privacy\local\request\writer;
+use dml_exception;
+use mod_feedbackbox\feedbackbox;
+use moodle_exception;
+use moodle_recordset;
 
 class provider implements
     // This plugin has data.
@@ -58,36 +68,9 @@ class provider implements
                 'userid' => 'privacy:metadata:feedbackbox_response:userid',
                 'feedbackboxid' => 'privacy:metadata:feedbackbox_response:feedbackboxid',
                 'complete' => 'privacy:metadata:feedbackbox_response:complete',
-                'grade' => 'privacy:metadata:feedbackbox_response:grade',
                 'submitted' => 'privacy:metadata:feedbackbox_response:submitted',
             ],
             'privacy:metadata:feedbackbox_response');
-
-        $collection->add_database_table('feedbackbox_response_bool',
-            [
-                'response_id' => 'privacy:metadata:feedbackbox_response_bool:response_id',
-                'question_id' => 'privacy:metadata:feedbackbox_response_bool:question_id',
-                'choice_id' => 'privacy:metadata:feedbackbox_response_bool:choice_id',
-            ],
-            'privacy:metadata:feedbackbox_response_bool');
-
-        $collection->add_database_table('feedbackbox_response_other',
-            [
-                'response_id' => 'privacy:metadata:feedbackbox_response_other:response_id',
-                'question_id' => 'privacy:metadata:feedbackbox_response_other:question_id',
-                'choice_id' => 'privacy:metadata:feedbackbox_response_other:choice_id',
-                'response' => 'privacy:metadata:feedbackbox_response_other:response',
-            ],
-            'privacy:metadata:feedbackbox_response_other');
-
-        $collection->add_database_table('feedbackbox_response_rank',
-            [
-                'response_id' => 'privacy:metadata:feedbackbox_response_rank:response_id',
-                'question_id' => 'privacy:metadata:feedbackbox_response_rank:question_id',
-                'choice_id' => 'privacy:metadata:feedbackbox_response_rank:choice_id',
-                'rank' => 'privacy:metadata:feedbackbox_response_rank:rankvalue',
-            ],
-            'privacy:metadata:feedbackbox_response_rank');
 
         $collection->add_database_table('feedbackbox_response_text',
             [
@@ -148,13 +131,13 @@ class provider implements
     /**
      * Get the list of users who have data within a context.
      *
-     * @param \core_privacy\local\request\userlist $userlist The userlist containing the list of users who have data in this
+     * @param userlist $userlist                             The userlist containing the list of users who have data in this
      *                                                       context/plugin combination.
      */
     public static function get_users_in_context(userlist $userlist) {
 
         $context = $userlist->get_context();
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
 
@@ -174,9 +157,12 @@ class provider implements
      * Export all user data for the specified user, in the specified contexts, using the supplied exporter instance.
      *
      * @param approved_contextlist $contextlist The approved contexts to export information for.
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
      */
     public static function export_user_data(approved_contextlist $contextlist) {
-        global $DB, $CFG;
+        global $DB;
 
         if (empty($contextlist->count())) {
             return;
@@ -206,37 +192,39 @@ class provider implements
         $responses = $DB->get_recordset_sql($sql, $params);
         foreach ($responses as $response) {
             // If we've moved to a new choice, then write the last choice data and reinit the choice data array.
+            $questions = [];
             if ($lastcmid != $response->cmid) {
                 if (!empty($responsedata)) {
-                    $context = \context_module::instance($lastcmid);
+                    $context = context_module::instance($lastcmid);
                     // Fetch the generic module data for the feedbackbox.
-                    $contextdata = \core_privacy\local\request\helper::get_context_data($context, $user);
+                    $contextdata = helper::get_context_data($context, $user);
                     // Merge with attempt data and write it.
                     $contextdata = (object) array_merge((array) $contextdata, $responsedata);
-                    \core_privacy\local\request\writer::with_context($context)->export_data([], $contextdata);
+                    writer::with_context($context)->export_data([], $contextdata);
                 }
                 $responsedata = [];
                 $lastcmid = $response->cmid;
                 $course = $DB->get_record("course", ["id" => $response->qcourse]);
                 $cm = get_coursemodule_from_instance("feedbackbox", $response->qid, $course->id);
-                $feedbackbox = new \feedbackbox($response->qid, null, $course, $cm);
+                $feedbackbox = new feedbackbox($response->qid, null, $course, $cm);
+                $questions = $feedbackbox->get_structured_response($response->responseid);
             }
             $responsedata['responses'][] = [
                 'complete' => (($response->complete == 'y') ? get_string('yes') : get_string('no')),
-                'lastsaved' => \core_privacy\local\request\transform::datetime($response->lastsaved),
-                'questions' => $feedbackbox->get_structured_response($response->responseid),
+                'lastsaved' => transform::datetime($response->lastsaved),
+                'questions' => $questions,
             ];
         }
         $responses->close();
 
         // The data for the last activity won't have been written yet, so make sure to write it now!
         if (!empty($responsedata)) {
-            $context = \context_module::instance($lastcmid);
+            $context = context_module::instance($lastcmid);
             // Fetch the generic module data for the feedbackbox.
-            $contextdata = \core_privacy\local\request\helper::get_context_data($context, $user);
+            $contextdata = helper::get_context_data($context, $user);
             // Merge with attempt data and write it.
             $contextdata = (object) array_merge((array) $contextdata, $responsedata);
-            \core_privacy\local\request\writer::with_context($context)->export_data([], $contextdata);
+            writer::with_context($context)->export_data([], $contextdata);
         }
     }
 
@@ -244,11 +232,13 @@ class provider implements
      * Delete all personal data for all users in the specified context.
      *
      * @param context $context Context to delete data from.
+     * @throws coding_exception
+     * @throws dml_exception
      */
-    public static function delete_data_for_all_users_in_context(\context $context) {
+    public static function delete_data_for_all_users_in_context(context $context) {
         global $DB;
 
-        if (!($context instanceof \context_module)) {
+        if (!($context instanceof context_module)) {
             return;
         }
 
@@ -268,9 +258,27 @@ class provider implements
     }
 
     /**
+     * Helper function to delete all the response records for a recordset array of responses.
+     *
+     * @param moodle_recordset $responses The list of response records to delete for.
+     * @throws dml_exception
+     */
+    private static function delete_responses(moodle_recordset $responses) {
+        global $DB;
+
+        foreach ($responses as $response) {
+            $DB->delete_records('feedbackbox_resp_multiple', ['response_id' => $response->id]);
+            $DB->delete_records('feedbackbox_resp_single', ['response_id' => $response->id]);
+            $DB->delete_records('feedbackbox_response_text', ['response_id' => $response->id]);
+        }
+    }
+
+    /**
      * Delete all user data for the specified user, in the specified contexts.
      *
      * @param approved_contextlist $contextlist The approved contexts and user information to delete information for.
+     * @throws coding_exception
+     * @throws dml_exception
      */
     public static function delete_data_for_user(approved_contextlist $contextlist) {
         global $DB;
@@ -281,7 +289,7 @@ class provider implements
 
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
-            if (!($context instanceof \context_module)) {
+            if (!($context instanceof context_module)) {
                 continue;
             }
             if (!$cm = get_coursemodule_from_id('feedbackbox', $context->instanceid)) {
@@ -304,8 +312,10 @@ class provider implements
     /**
      * Delete multiple users within a single context.
      *
-     * @param \core_privacy\local\request\approved_userlist $userlist The approved context and user information to delete
-     *                                                                information for.
+     * @param approved_userlist $userlist The approved context and user information to delete
+     *                                    information for.
+     * @throws coding_exception
+     * @throws dml_exception
      */
     public static function delete_data_for_users(approved_userlist $userlist) {
         global $DB;
@@ -326,22 +336,5 @@ class provider implements
         }
         $responses->close();
         $DB->delete_records_select('feedbackbox_response', $select, $params);
-    }
-
-    /**
-     * Helper function to delete all the response records for a recordset array of responses.
-     *
-     * @param recordset $responses The list of response records to delete for.
-     */
-    private static function delete_responses(\moodle_recordset $responses) {
-        global $DB;
-
-        foreach ($responses as $response) {
-            $DB->delete_records('feedbackbox_resp_multiple', ['response_id' => $response->id]);
-            $DB->delete_records('feedbackbox_response_other', ['response_id' => $response->id]);
-            $DB->delete_records('feedbackbox_response_rank', ['response_id' => $response->id]);
-            $DB->delete_records('feedbackbox_resp_single', ['response_id' => $response->id]);
-            $DB->delete_records('feedbackbox_response_text', ['response_id' => $response->id]);
-        }
     }
 }

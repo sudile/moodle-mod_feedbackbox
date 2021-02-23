@@ -59,8 +59,9 @@ class notification extends scheduled_task {
         $boxes = $DB->get_records_sql('SELECT * FROM {feedbackbox} WHERE closedate > ?', [$last]);
         foreach ($boxes as $box) {
             $studentsnotified = $box->notifystudents == 0; // Will disable mail sending for users
-            $teachersnotified = get_config('feedbackbox', 'allowemailreporting') != 1; // Will disable mail sending for teachers
-            if($studentsnotified && $teachersnotified) {
+            $teachersnotified = get_config('feedbackbox',
+                    'allowemailreporting') != 1; // Will disable mail sending for teachers
+            if ($studentsnotified && $teachersnotified) {
                 continue;
             }
             $start = $box->opendate;
@@ -84,7 +85,7 @@ class notification extends scheduled_task {
             }
             $zones = $instance->get_turnus_zones();
             if ($last < $start && !$studentsnotified) {
-                $message = new turnusavailable($participants, $instance, end($zones));
+                $message = new turnusavailable($participants, $instance);
                 $message->send();
                 // Send Message to students. (Feedbackbox got started after the last task run so it needs to fire).
                 $studentsnotified = true;
@@ -98,13 +99,13 @@ class notification extends scheduled_task {
 
             $lastzone = $instance->get_current_turnus($last);
             $currentzone = $instance->get_current_turnus();
-            if($currentzone === false && !$teachersnotified) {
+            if ($currentzone === false && !$teachersnotified) {
                 $message = new reportavailable($teachers, $instance, end($zones));
                 $message->send();
                 $teachersnotified = true;
             }
             if ($last < $currentzone->from && !$studentsnotified) {
-                $message = new turnusavailable($participants, $instance, $currentzone);
+                $message = new turnusavailable($participants, $instance);
                 $message->send();
             }
             if ($lastzone !== false && !$teachersnotified) {

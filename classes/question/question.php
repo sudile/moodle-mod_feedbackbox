@@ -17,6 +17,7 @@
 namespace mod_feedbackbox\question;
 
 use coding_exception;
+use context;
 use dml_exception;
 use html_writer;
 use mod_feedbackbox\responsetype\response\response;
@@ -61,48 +62,6 @@ require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
 abstract class question {
 
     // Class Properties.
-    /** @var int $id The database id of this question. */
-    public $id = 0;
-
-    /** @var int $surveyid The database id of the survey this question belongs to. */
-    public $surveyid = 0;
-
-    /** @var string $name The name of this question. */
-    public $name = '';
-
-    /** @var string $type The name of the question type. */
-    public $type = '';
-
-    /** @var array $choices Array holding any choices for this question. */
-    public $choices = [];
-
-    /** @var array $dependencies Array holding any dependencies for this question. */
-    public $dependencies = [];
-
-    /** @var string $responsetable The table name for responses. */
-    public $responsetable = '';
-
-    /** @var int $length The length field. */
-    public $length = 0;
-
-    /** @var int $precise The precision field. */
-    public $precise = 0;
-
-    /** @var int $position Position in the feedbackbox */
-    public $position = 0;
-
-    /** @var string $content The question's content. */
-    public $content = '';
-
-    /** @var boolean $required The required flag. */
-    public $required = 'n';
-
-    /** @var boolean $deleted The deleted flag. */
-    public $deleted = 'n';
-
-    /** @var mixed $extradata Any custom data for the question type. */
-    public $extradata = '';
-
     /** @var array $qtypenames List of all question names. */
     private static $qtypenames = [
         QUESYESNO => 'yesno',
@@ -117,16 +76,44 @@ abstract class question {
         QUESPAGEBREAK => 'pagebreak',
         QUESSECTIONTEXT => 'sectiontext'
     ];
-
+    /** @var int $id The database id of this question. */
+    public $id = 0;
+    /** @var int $surveyid The database id of the survey this question belongs to. */
+    public $surveyid = 0;
+    /** @var string $name The name of this question. */
+    public $name = '';
+    /** @var string $type The name of the question type. */
+    public $type = '';
+    /** @var array $choices Array holding any choices for this question. */
+    public $choices = [];
+    /** @var array $dependencies Array holding any dependencies for this question. */
+    public $dependencies = [];
+    /** @var string $responsetable The table name for responses. */
+    public $responsetable = '';
+    /** @var int $length The length field. */
+    public $length = 0;
+    /** @var int $precise The precision field. */
+    public $precise = 0;
+    /** @var int $position Position in the feedbackbox */
+    public $position = 0;
+    /** @var string $content The question's content. */
+    public $content = '';
+    /** @var boolean $required The required flag. */
+    public $required = 'n';
+    /** @var boolean $deleted The deleted flag. */
+    public $deleted = 'n';
     /** @var array $notifications Array of extra messages for display purposes. */
     private $notifications = [];
 
+    private $context = null;
+
+    private $qid = 0;
     /**
      * The class constructor
      *
      * @param int   $id
      * @param null  $question
-     * @param null  $context
+     * @param context  $context
      * @param array $params
      * @throws dml_exception
      */
@@ -155,7 +142,6 @@ abstract class question {
             $this->content = $question->content;
             $this->required = $question->required;
             $this->deleted = $question->deleted;
-            $this->extradata = $question->extradata;
 
             $this->type_id = $question->type_id;
             $this->type = $qtypes[$this->type_id]->type;
@@ -179,11 +165,27 @@ abstract class question {
     }
 
     /**
-     * Short name for this question type - no spaces, etc..
-     *
-     * @return string
+     * @throws dml_exception
      */
-    abstract public function helpname();
+    private function get_choices() {
+        global $DB;
+
+        if ($choices = $DB->get_records('feedbackbox_quest_choice', ['question_id' => $this->id], 'id ASC')) {
+            foreach ($choices as $choice) {
+                $this->choices[$choice->id] = choice\choice::create_from_data($choice);
+            }
+        } else {
+            $this->choices = [];
+        }
+    }
+
+    /**
+     * Each question type must define its response class.
+     *
+     * @return object The response object based off of feedbackbox_response_base.
+     *
+     */
+    abstract protected function responseclass();
 
     /**
      * Build a question from data.
@@ -228,44 +230,11 @@ abstract class question {
     }
 
     /**
-     * Override and return true if the question has choices.
-     */
-    public function has_choices() {
-        return false;
-    }
-
-    /**
-     * @throws dml_exception
-     */
-    private function get_choices() {
-        global $DB;
-
-        if ($choices = $DB->get_records('feedbackbox_quest_choice', ['question_id' => $this->id], 'id ASC')) {
-            foreach ($choices as $choice) {
-                $this->choices[$choice->id] = choice\choice::create_from_data($choice);
-            }
-        } else {
-            $this->choices = [];
-        }
-    }
-
-    /**
-     * Return true if this question has been marked as required.
+     * Short name for this question type - no spaces, etc..
      *
-     * @return boolean
+     * @return string
      */
-    public function required() {
-        return ($this->required == 'y');
-    }
-
-    /**
-     * Return true if the question has defined dependencies.
-     *
-     * @return boolean
-     */
-    public function has_dependencies() {
-        return !empty($this->dependencies);
-    }
+    abstract public function helpname();
 
     /**
      * Override this and return true if the question type allows dependent questions.
@@ -274,70 +243,6 @@ abstract class question {
      */
     public function allows_dependents() {
         return false;
-    }
-
-    /**
-     * Return true if all dependencies or this question have been fulfilled, or there aren't any.
-     *
-     * @param int   $rid       The response ID to check.
-     * @param array $questions An array containing all possible parent question objects.
-     * @return bool
-     */
-    public function dependency_fulfilled($rid, $questions) {
-        if (!$this->has_dependencies()) {
-            $fulfilled = true;
-        } else {
-            foreach ($this->dependencies as $dependency) {
-                $choicematches = $questions[$dependency->dependquestionid]->response_has_choice($rid,
-                    $dependency->dependchoiceid);
-
-                // Note: dependencies are sorted, first all and-dependencies, then or-dependencies.
-                if ($dependency->dependandor == 'and') {
-                    $dependencyandfulfilled = false;
-                    // This answer given.
-                    if (($dependency->dependlogic == 1) && $choicematches) {
-                        $dependencyandfulfilled = true;
-                    }
-
-                    // This answer NOT given.
-                    if (($dependency->dependlogic == 0) && !$choicematches) {
-                        $dependencyandfulfilled = true;
-                    }
-
-                    // Something mandatory not fulfilled? Stop looking and continue to next question.
-                    if ($dependencyandfulfilled == false) {
-                        break;
-                    }
-
-                    // In case we have no or-dependencies.
-                    $dependencyorfulfilled = true;
-                }
-
-                // Note: dependencies are sorted, first all and-dependencies, then or-dependencies.
-                if ($dependency->dependandor == 'or') {
-                    $dependencyorfulfilled = false;
-                    // To reach this point, the and-dependencies have all been fultilled or do not exist, so set them ok.
-                    $dependencyandfulfilled = true;
-                    // This answer given.
-                    if (($dependency->dependlogic == 1) && $choicematches) {
-                        $dependencyorfulfilled = true;
-                    }
-
-                    // This answer NOT given.
-                    if (($dependency->dependlogic == 0) && !$choicematches) {
-                        $dependencyorfulfilled = true;
-                    }
-
-                    // Something fulfilled? A single match is sufficient so continue to next question.
-                    if ($dependencyorfulfilled == true) {
-                        break;
-                    }
-                }
-
-            }
-            $fulfilled = ($dependencyandfulfilled && $dependencyorfulfilled);
-        }
-        return $fulfilled;
     }
 
     /**
@@ -357,6 +262,9 @@ abstract class question {
 
     /**
      * Get results data method.
+     *
+     * @param bool $rids
+     * @return bool
      */
     public function get_results($rids = false) {
         if (isset ($this->responsetype) && is_object($this->responsetype) &&
@@ -390,48 +298,11 @@ abstract class question {
     }
 
     /**
-     * Each question type must define its response class.
-     *
-     * @return object The response object based off of feedbackbox_response_base.
-     *
-     */
-    abstract protected function responseclass();
-
-    /**
      * True if question type allows responses.
      */
     public function supports_responses() {
         return !empty($this->responseclass());
     }
-
-    /**
-     * True if question type supports feedback options. False by default.
-     */
-    public function supports_feedback() {
-        return false;
-    }
-
-    /**
-     * True if question type supports feedback scores and weights. Same as supports_feedback() by default.
-     */
-    public function supports_feedback_scores() {
-        return $this->supports_feedback();
-    }
-
-    /**
-     * True if the question supports feedback and has valid settings for feedback. Override if the default logic is not enough.
-     */
-    public function valid_feedback() {
-        if ($this->supports_feedback() && $this->has_choices() && $this->required() && !empty($this->name)) {
-            foreach ($this->choices as $choice) {
-                if ($choice->value != null) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
 
     /**
      * Check question's form data for complete response.
@@ -461,6 +332,15 @@ abstract class question {
     }
 
     /**
+     * Return true if this question has been marked as required.
+     *
+     * @return boolean
+     */
+    public function required() {
+        return ($this->required == 'y');
+    }
+
+    /**
      * Check question's form data for valid response. Override this if type has specific format requirements.
      *
      * @param object $responsedata The data entered into the response.
@@ -486,16 +366,12 @@ abstract class question {
             $questionrecord->surveyid = $this->surveyid;
             $questionrecord->name = $this->name;
             $questionrecord->type_id = $this->type_id;
-            $questionrecord->result_id = $this->result_id;
             $questionrecord->length = $this->length;
             $questionrecord->precise = $this->precise;
             $questionrecord->position = $this->position;
             $questionrecord->content = $this->content;
             $questionrecord->required = $this->required;
             $questionrecord->deleted = $this->deleted;
-            $questionrecord->extradata = $this->extradata;
-            $questionrecord->dependquestion = $this->dependquestion;
-            $questionrecord->dependchoice = $this->dependchoice;
         } else {
             // Make sure the "id" field is this question's.
             if (isset($this->qid) && ($this->qid > 0)) {
@@ -509,6 +385,48 @@ abstract class question {
         if ($updatechoices && $this->has_choices()) {
             $this->update_choices();
         }
+    }
+
+    /**
+     * Override and return true if the question has choices.
+     */
+    public function has_choices() {
+        return false;
+    }
+
+    /**
+     * @return bool
+     * @throws dml_exception
+     */
+    public function update_choices() {
+        $retvalue = true;
+        if ($this->has_choices() && isset($this->choices)) {
+            // Need to fix this messed-up qid/id issue.
+            if (isset($this->qid) && ($this->qid > 0)) {
+                $qid = $this->qid;
+            } else {
+                $qid = $this->id;
+            }
+            foreach ($this->choices as $key => $choice) {
+                $choicerecord = new stdClass();
+                $choicerecord->id = $key;
+                $choicerecord->question_id = $qid;
+                $choicerecord->content = $choice->content;
+                $choicerecord->value = $choice->value;
+                $retvalue &= $this->update_choice($choicerecord);
+            }
+        }
+        return $retvalue;
+    }
+
+    /**
+     * @param $choicerecord
+     * @return bool
+     * @throws dml_exception
+     */
+    public function update_choice($choicerecord) {
+        global $DB;
+        return $DB->update_record('feedbackbox_quest_choice', $choicerecord);
     }
 
     /**
@@ -552,41 +470,6 @@ abstract class question {
     }
 
     /**
-     * @return bool
-     * @throws dml_exception
-     */
-    public function update_choices() {
-        $retvalue = true;
-        if ($this->has_choices() && isset($this->choices)) {
-            // Need to fix this messed-up qid/id issue.
-            if (isset($this->qid) && ($this->qid > 0)) {
-                $qid = $this->qid;
-            } else {
-                $qid = $this->id;
-            }
-            foreach ($this->choices as $key => $choice) {
-                $choicerecord = new stdClass();
-                $choicerecord->id = $key;
-                $choicerecord->question_id = $qid;
-                $choicerecord->content = $choice->content;
-                $choicerecord->value = $choice->value;
-                $retvalue &= $this->update_choice($choicerecord);
-            }
-        }
-        return $retvalue;
-    }
-
-    /**
-     * @param $choicerecord
-     * @return bool
-     * @throws dml_exception
-     */
-    public function update_choice($choicerecord) {
-        global $DB;
-        return $DB->update_record('feedbackbox_quest_choice', $choicerecord);
-    }
-
-    /**
      * @param $choicerecord
      * @return bool
      * @throws dml_exception
@@ -603,43 +486,6 @@ abstract class question {
         }
         return $retvalue;
     }
-
-    /**
-     * @param $dependencyrecord
-     * @return bool
-     * @throws dml_exception
-     */
-    public function add_dependency($dependencyrecord) {
-        global $DB;
-
-        $retvalue = true;
-        if ($did = $DB->insert_record('feedbackbox_dependency', $dependencyrecord)) {
-            $this->dependencies[$did] = new stdClass();
-            $this->dependencies[$did]->dependquestionid = $dependencyrecord->dependquestionid;
-            $this->dependencies[$did]->dependchoiceid = $dependencyrecord->dependchoiceid;
-            $this->dependencies[$did]->dependlogic = $dependencyrecord->dependlogic;
-            $this->dependencies[$did]->dependandor = $dependencyrecord->dependandor;
-        } else {
-            $retvalue = false;
-        }
-        return $retvalue;
-    }
-
-    /**
-     * Question specific display method.
-     *
-     * @param object  $formdata
-     * @param         $descendantsdata
-     * @param boolean $blankfeedbackbox
-     */
-    abstract protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox);
-
-    /**
-     * Question specific response display method.
-     *
-     * @param object $data
-     */
-    abstract protected function response_survey_display($data);
 
     /**
      * Override and return a form template if provided. Output of question_survey_display is interpreted based on this.
@@ -663,9 +509,9 @@ abstract class question {
      * Get the output for question renderers / templates.
      *
      * @param response $response
-     * @param array                                           $dependants Array of all questions/choices depending on this question.
-     * @param string                                          $qnum
-     * @param boolean                                         $blankfeedbackbox
+     * @param array    $dependants Array of all questions/choices depending on this question.
+     * @param string   $qnum
+     * @param boolean  $blankfeedbackbox
      * @return stdClass
      * @throws coding_exception
      */
@@ -678,24 +524,19 @@ abstract class question {
     /**
      * Get the output for the start of the questions in a survey.
      *
-     * @param integer                                         $qnum
-     * @param response $response
+     * @param integer        $qnum
+     * @param response|array $response
      * @return stdClass
      * @throws coding_exception
      */
     public function questionstart_survey_display($qnum, $response = null) {
-        global $OUTPUT, $SESSION, $feedbackbox, $PAGE;
+        global $OUTPUT, $PAGE;
 
         $pagetags = new stdClass();
-        $currenttab = $SESSION->feedbackbox->current_tab;
         $pagetype = $PAGE->pagetype;
         $skippedclass = '';
         // If no questions autonumbering.
         $nonumbering = false;
-        if (!$feedbackbox->questions_autonumbered()) {
-            $qnum = '';
-            $nonumbering = true;
-        }
 
         // For now, check what the response type is until we've got it all refactored.
         if ($response instanceof response) {
@@ -714,14 +555,6 @@ abstract class question {
         // In report mode, If feedbackbox is set to no numbering,
         // also hide answers to questions that have not been answered.
         $displayclass = 'qn-container';
-        if ($pagetype == 'mod-feedbackbox-preview' || ($nonumbering &&
-                ($currenttab == 'mybyresponse' || $currenttab == 'individualresp'))) {
-            // This needs to be done to ensure all dependency data is loaded.
-            // TODO - Perhaps this should be a function called by the feedbackbox after it loads all questions?
-            $feedbackbox->load_parents($this);
-            // Want this to come from the renderer, meaning we need $feedbackbox.
-            $pagetags->dependencylist = $feedbackbox->renderer->get_dependency_html($this->id, $this->dependencies);
-        }
 
         $pagetags->fieldset = (object) ['id' => $this->id, 'class' => $displayclass];
 
@@ -768,6 +601,15 @@ abstract class question {
     }
 
     /**
+     * Question specific display method.
+     *
+     * @param object  $formdata
+     * @param         $descendantsdata
+     * @param boolean $blankfeedbackbox
+     */
+    abstract protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox);
+
+    /**
      * True if question provides mobile support.
      *
      * @return bool
@@ -775,4 +617,11 @@ abstract class question {
     public function supports_mobile() {
         return false;
     }
+
+    /**
+     * Question specific response display method.
+     *
+     * @param object $data
+     */
+    abstract protected function response_survey_display($data);
 }

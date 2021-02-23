@@ -25,13 +25,11 @@ require_once("./locallib.php");
 if (!isset($SESSION->feedbackbox)) {
     $SESSION->feedbackbox = new stdClass();
 }
-$SESSION->feedbackbox->current_tab = 'view';
 
 $id = optional_param('id', null, PARAM_INT);    // Course Module ID.
 $a = optional_param('a', null, PARAM_INT);      // Feedbackbox ID.
 
 $sid = optional_param('sid', null, PARAM_INT);  // Survey id.
-$resume = optional_param('resume', null, PARAM_INT);    // Is this attempt a resume of a saved attempt?
 list($cm, $course, $feedbackbox) = feedbackbox_get_standard_page_items($id, $a);
 
 // Check login and get context.

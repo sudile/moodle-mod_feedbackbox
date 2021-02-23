@@ -25,15 +25,13 @@
 namespace mod_feedbackbox\question;
 
 use coding_exception;
+use mod_feedbackbox\responsetype\answer\answer;
 use mod_feedbackbox\responsetype\response\response;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
 class check extends question {
-
-    protected function responseclass() {
-        return '\\mod_feedbackbox\\responsetype\\multiple';
-    }
 
     public function helpname() {
         return 'checkboxes';
@@ -71,132 +69,6 @@ class check extends question {
      */
     public function allows_dependents() {
         return true;
-    }
-
-    /**
-     * Return the context tags for the check question template.
-     *
-     * @param response $response
-     * @param array    $dependants Array of all questions/choices depending on this question.
-     * @param boolean  $blankfeedbackbox
-     * @return object The check question context tags.
-     * @throws coding_exception
-     */
-    protected function question_survey_display($response, $dependants, $blankfeedbackbox = false) {
-        $otherempty = false;
-        if (!empty($response)) {
-            // Verify that number of checked boxes (nbboxes) is within set limits (length = min; precision = max).
-            if (!empty($response->answers[$this->id])) {
-                $otherempty = false;
-                $nbboxes = count($response->answers[$this->id]);
-                foreach ($response->answers[$this->id] as $answer) {
-                    $choice = $this->choices[$answer->choiceid];
-                    if ($choice->is_other_choice()) {
-                        $otherempty = empty($answer->value);
-                    }
-                }
-                $nbchoices = count($this->choices);
-                $min = $this->length;
-                $max = $this->precise;
-                if ($max == 0) {
-                    $max = $nbchoices;
-                }
-                if ($min > $max) {
-                    $min = $max; // Sanity check.
-                }
-                $min = min($nbchoices, $min);
-                if ($nbboxes < $min || $nbboxes > $max) {
-                    $msg = get_string('boxesnbreq', 'feedbackbox');
-                    if ($min == $max) {
-                        $msg .= get_string('boxesnbexact', 'feedbackbox', $min);
-                    } else {
-                        if ($min && ($nbboxes < $min)) {
-                            $msg .= get_string('boxesnbmin', 'feedbackbox', $min);
-                            if ($nbboxes > $max) {
-                                $msg .= ' & ' . get_string('boxesnbmax', 'feedbackbox', $max);
-                            }
-                        } else {
-                            if ($nbboxes > $max) {
-                                $msg .= get_string('boxesnbmax', 'feedbackbox', $max);
-                            }
-                        }
-                    }
-                    $this->add_notification($msg);
-                }
-            }
-        }
-
-        $choicetags = new \stdClass();
-        $choicetags->qelements = [];
-        foreach ($this->choices as $id => $choice) {
-            $checkbox = new \stdClass();
-            $contents = feedbackbox_choice_values($choice->content);
-            $checked = false;
-            if (!empty($response->answers[$this->id])) {
-                $checked = isset($response->answers[$this->id][$id]);
-            }
-            $checkbox->name = 'q' . $this->id . '[' . $id . ']';
-            $checkbox->value = $id;
-            $checkbox->id = 'checkbox_' . $id;
-            $checkbox->label = format_text($contents->text, FORMAT_HTML, ['noclean' => true]) . $contents->image;
-            if ($checked) {
-                $checkbox->checked = $checked;
-            }
-            if ($choice->is_other_choice()) {
-                $checkbox->oname = 'q' . $this->id . '[' . $choice->other_choice_name() . ']';
-                $checkbox->ovalue = (isset($response->answers[$this->id][$id]) && !empty($response->answers[$this->id][$id]) ?
-                    stripslashes($response->answers[$this->id][$id]->value) : '');
-                $checkbox->label = format_text($choice->other_choice_display() . '', FORMAT_HTML, ['noclean' => true]);
-            }
-            $choicetags->qelements[] = (object) ['choice' => $checkbox];
-        }
-        if ($otherempty) {
-            $this->add_notification(get_string('otherempty', 'feedbackbox'));
-        }
-        return $choicetags;
-    }
-
-    /**
-     * Return the context tags for the check response template.
-     *
-     * @param response $response
-     * @return object The check question response context tags.
-     */
-    protected function response_survey_display($response) {
-        static $uniquetag = 0;  // To make sure all radios have unique names.
-
-        $resptags = new \stdClass();
-        $resptags->choices = [];
-
-        if (!isset($response->answers[$this->id])) {
-            $response->answers[$this->id][] = new \mod_feedbackbox\responsetype\answer\answer();
-        }
-
-        foreach ($this->choices as $id => $choice) {
-            $chobj = new \stdClass();
-            if (!$choice->is_other_choice()) {
-                $contents = feedbackbox_choice_values($choice->content);
-                $choice->content = $contents->text . $contents->image;
-                if (isset($response->answers[$this->id][$id])) {
-                    $chobj->selected = 1;
-                }
-                $chobj->name = $id . $uniquetag++;
-                $chobj->content = (($choice->content === '') ? $id : format_text($choice->content,
-                    FORMAT_HTML,
-                    ['noclean' => true]));
-            } else {
-                $othertext = $choice->other_choice_display();
-                if (isset($response->answers[$this->id][$id])) {
-                    $oresp = $response->answers[$this->id][$id]->value;
-                    $chobj->selected = 1;
-                    $chobj->othercontent = (!empty($oresp) ? htmlspecialchars($oresp) : '&nbsp;');
-                }
-                $chobj->name = $id . $uniquetag++;
-                $chobj->content = (($othertext === '') ? $id : $othertext);
-            }
-            $resptags->choices[] = $chobj;
-        }
-        return $resptags;
     }
 
     /**
@@ -262,5 +134,135 @@ class check extends question {
      */
     public function supports_mobile() {
         return false;
+    }
+
+    protected function responseclass() {
+        return '\\mod_feedbackbox\\responsetype\\multiple';
+    }
+
+    /**
+     * Return the context tags for the check question template.
+     *
+     * @param response $response
+     * @param array    $dependants Array of all questions/choices depending on this question.
+     * @param boolean  $blankfeedbackbox
+     * @return object The check question context tags.
+     * @throws coding_exception
+     */
+    protected function question_survey_display($response, $dependants, $blankfeedbackbox = false) {
+        $otherempty = false;
+        if (!empty($response)) {
+            // Verify that number of checked boxes (nbboxes) is within set limits (length = min; precision = max).
+            if (!empty($response->answers[$this->id])) {
+                $otherempty = false;
+                $nbboxes = count($response->answers[$this->id]);
+                foreach ($response->answers[$this->id] as $answer) {
+                    $choice = $this->choices[$answer->choiceid];
+                    if ($choice->is_other_choice()) {
+                        $otherempty = empty($answer->value);
+                    }
+                }
+                $nbchoices = count($this->choices);
+                $min = $this->length;
+                $max = $this->precise;
+                if ($max == 0) {
+                    $max = $nbchoices;
+                }
+                if ($min > $max) {
+                    $min = $max; // Sanity check.
+                }
+                $min = min($nbchoices, $min);
+                if ($nbboxes < $min || $nbboxes > $max) {
+                    $msg = get_string('boxesnbreq', 'feedbackbox');
+                    if ($min == $max) {
+                        $msg .= get_string('boxesnbexact', 'feedbackbox', $min);
+                    } else {
+                        if ($min && ($nbboxes < $min)) {
+                            $msg .= get_string('boxesnbmin', 'feedbackbox', $min);
+                            if ($nbboxes > $max) {
+                                $msg .= ' & ' . get_string('boxesnbmax', 'feedbackbox', $max);
+                            }
+                        } else {
+                            if ($nbboxes > $max) {
+                                $msg .= get_string('boxesnbmax', 'feedbackbox', $max);
+                            }
+                        }
+                    }
+                    $this->add_notification($msg);
+                }
+            }
+        }
+
+        $choicetags = new stdClass();
+        $choicetags->qelements = [];
+        foreach ($this->choices as $id => $choice) {
+            $checkbox = new stdClass();
+            $contents = feedbackbox_choice_values($choice->content);
+            $checked = false;
+            if (!empty($response->answers[$this->id])) {
+                $checked = isset($response->answers[$this->id][$id]);
+            }
+            $checkbox->name = 'q' . $this->id . '[' . $id . ']';
+            $checkbox->value = $id;
+            $checkbox->id = 'checkbox_' . $id;
+            $checkbox->label = format_text($contents->text, FORMAT_HTML, ['noclean' => true]) . $contents->image;
+            if ($checked) {
+                $checkbox->checked = $checked;
+            }
+            if ($choice->is_other_choice()) {
+                $checkbox->oname = 'q' . $this->id . '[' . $choice->other_choice_name() . ']';
+                $checkbox->ovalue = (isset($response->answers[$this->id][$id]) && !empty($response->answers[$this->id][$id]) ?
+                    stripslashes($response->answers[$this->id][$id]->value) : '');
+                $checkbox->label = format_text($choice->other_choice_display() . '', FORMAT_HTML, ['noclean' => true]);
+            }
+            $choicetags->qelements[] = (object) ['choice' => $checkbox];
+        }
+        if ($otherempty) {
+            $this->add_notification(get_string('otherempty', 'feedbackbox'));
+        }
+        return $choicetags;
+    }
+
+    /**
+     * Return the context tags for the check response template.
+     *
+     * @param response $response
+     * @return object The check question response context tags.
+     */
+    protected function response_survey_display($response) {
+        static $uniquetag = 0;  // To make sure all radios have unique names.
+
+        $resptags = new stdClass();
+        $resptags->choices = [];
+
+        if (!isset($response->answers[$this->id])) {
+            $response->answers[$this->id][] = new answer();
+        }
+
+        foreach ($this->choices as $id => $choice) {
+            $chobj = new stdClass();
+            if (!$choice->is_other_choice()) {
+                $contents = feedbackbox_choice_values($choice->content);
+                $choice->content = $contents->text . $contents->image;
+                if (isset($response->answers[$this->id][$id])) {
+                    $chobj->selected = 1;
+                }
+                $chobj->name = $id . $uniquetag++;
+                $chobj->content = (($choice->content === '') ? $id : format_text($choice->content,
+                    FORMAT_HTML,
+                    ['noclean' => true]));
+            } else {
+                $othertext = $choice->other_choice_display();
+                if (isset($response->answers[$this->id][$id])) {
+                    $oresp = $response->answers[$this->id][$id]->value;
+                    $chobj->selected = 1;
+                    $chobj->othercontent = (!empty($oresp) ? htmlspecialchars($oresp) : '&nbsp;');
+                }
+                $chobj->name = $id . $uniquetag++;
+                $chobj->content = (($othertext === '') ? $id : $othertext);
+            }
+            $resptags->choices[] = $chobj;
+        }
+        return $resptags;
     }
 }

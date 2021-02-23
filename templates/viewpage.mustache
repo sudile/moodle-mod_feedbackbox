@@ -48,12 +48,17 @@
 <div class="mod_feedbackbox_viewpage">
     <h2>{{feedbackboxname}}</h2>
     {{#str}}feedbackboxadvice, mod_feedbackbox{{/str}}
-    {{#intro}}<div class="intro">{{{intro}}}</div>{{/intro}}
-    {{#message}}<div class="message">{{{message}}}</div>{{/message}}
+    {{#intro}}
+        <div class="intro">{{{intro}}}</div>{{/intro}}
+    {{#message}}
+        <div class="message">{{{message}}}</div>{{/message}}
     <div class="buttongroupfb">
-        {{#complete}}<div class="complete alignbox">{{{complete}}}</div>{{/complete}}
-        {{#guestuser}}<div class="guestuser alignbox">{{{guestuser}}}</div>{{/guestuser}}
-        {{#allresponses}}<div class="allresponses alignbox">{{{allresponses}}}</div>{{/allresponses}}
+        {{#complete}}
+            <div class="complete alignbox">{{{complete}}}</div>{{/complete}}
+        {{#guestuser}}
+            <div class="guestuser alignbox">{{{guestuser}}}</div>{{/guestuser}}
+        {{#allresponses}}
+            <div class="allresponses alignbox">{{{allresponses}}}</div>{{/allresponses}}
         <div class="clearboth"></div>
     </div>
 </div>

@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 use mod_feedbackbox\feedbackbox;
+use mod_feedbackbox\output\viewpage;
 
-require_once("../../config.php");
+require_once('./../../config.php');
 require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
 
 if (!isset($SESSION->feedbackbox)) {
     $SESSION->feedbackbox = new stdClass();
 }
-$SESSION->feedbackbox->current_tab = 'view';
 
 $id = optional_param('id', null, PARAM_INT);    // Course Module ID.
 $a = optional_param('a', null, PARAM_INT);      // Or feedbackbox ID.
@@ -51,7 +51,7 @@ $PAGE->set_context($context);
 $feedbackbox = new feedbackbox(0, $feedbackbox, $course, $cm);
 // Add renderer and page objects to the feedbackbox object for display use.
 $feedbackbox->add_renderer($PAGE->get_renderer('mod_feedbackbox'));
-$feedbackbox->add_page(new \mod_feedbackbox\output\viewpage());
+$feedbackbox->add_page(new viewpage());
 
 $PAGE->set_title(format_string($feedbackbox->name));
 $PAGE->set_heading(format_string($course->fullname));
@@ -64,12 +64,6 @@ if ($feedbackbox->intro) {
     $feedbackbox->page->add_to_page('intro', format_module_intro('feedbackbox', $feedbackbox, $cm->id));
 }
 
-$cm = $feedbackbox->cm;
-$currentgroupid = groups_get_activity_group($cm);
-if (!groups_is_member($currentgroupid, $USER->id)) {
-    $currentgroupid = 0;
-}
-
 $message = $feedbackbox->user_access_messages($USER->id);
 if ($message !== false) {
     $feedbackbox->page->add_to_page('message', $message);
@@ -77,26 +71,17 @@ if ($message !== false) {
     if ($feedbackbox->questions) { // Sanity check.
         if (!$feedbackbox->user_has_saved_response($USER->id)) {
             $feedbackbox->page->add_to_page('complete',
-                '<a href="' . $CFG->wwwroot . htmlspecialchars('/mod/feedbackbox/complete.php?' .
-                    'id=' . $feedbackbox->cm->id) . '" class="btn btn-primary">' .
-                get_string('answerquestions', 'feedbackbox') . '</a>');
+                '<a href="' . $CFG->wwwroot . '/mod/feedbackbox/complete.php?id=' . intval($feedbackbox->cm->id) .
+                '" class="btn btn-primary">' . get_string('answerquestions', 'feedbackbox') . '</a>');
         } else {
             $resumesurvey = get_string('resumesurvey', 'feedbackbox');
             $feedbackbox->page->add_to_page('complete',
-                '<a href="' . $CFG->wwwroot . htmlspecialchars('/mod/feedbackbox/complete.php?' .
-                    'id=' . $feedbackbox->cm->id . '&resume=1') . '" title="' . $resumesurvey .
-                '" class="btn btn-primary">' . $resumesurvey . '</a>');
+                '<a href="' . $CFG->wwwroot . '/mod/feedbackbox/complete.php?id=' . intval($feedbackbox->cm->id) .
+                '&resume=1' . '" title="' . $resumesurvey . '" class="btn btn-primary">' . $resumesurvey . '</a>');
         }
     } else {
         $feedbackbox->page->add_to_page('message', get_string('noneinuse', 'feedbackbox'));
     }
-}
-
-if ($feedbackbox->capabilities->editquestions && !$feedbackbox->questions && $feedbackbox->is_active()) {
-    $feedbackbox->page->add_to_page('complete',
-        '<a href="' . $CFG->wwwroot . htmlspecialchars('/mod/feedbackbox/questions.php?' .
-            'id=' . $feedbackbox->cm->id) . '" class="btn btn-primary">' .
-        get_string('addquestions', 'feedbackbox') . '</a>');
 }
 
 if (isguestuser()) {
@@ -108,21 +93,11 @@ if (isguestuser()) {
             get_local_referer(false)));
 }
 
-// Log this course module view.
-// Needed for the event logging.
 $context = context_module::instance($feedbackbox->cm->id);
-$anonymous = $feedbackbox->respondenttype == 'anonymous';
-
-$usernumresp = $feedbackbox->count_submissions($USER->id);
-
-if ($feedbackbox->capabilities->readownresponses && ($usernumresp > 0)) {
-    $argstr = 'instance=' . $feedbackbox->id . '&user=' . $USER->id;
-}
-
 if (has_capability('mod/feedbackbox:manage', $context)) {
-    $argstr = 'instance=' . $feedbackbox->id . '&group=' . $currentgroupid;
+    $argstr = 'instance=' . intval($feedbackbox->id);
     $feedbackbox->page->add_to_page('allresponses',
-        '<a href="' . $CFG->wwwroot . htmlspecialchars('/mod/feedbackbox/report.php?' . $argstr) . '" class="btn btn-primary">' .
+        '<a href="' . $CFG->wwwroot . '/mod/feedbackbox/report.php?' . $argstr . '" class="btn btn-primary">' .
         get_string('viewallresponses', 'feedbackbox') . '</a>');
 }
 

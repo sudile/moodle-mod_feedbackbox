@@ -16,7 +16,7 @@
 
 use mod_feedbackbox\feedbackbox;
 
-require_once("../../config.php");
+require_once('./../../config.php');
 
 $instance = optional_param('instance', false, PARAM_INT);   // Feedbackbox ID.
 $action = optional_param('action', null, PARAM_ALPHA);
@@ -32,15 +32,14 @@ if ($instance === false) {
     }
 }
 $SESSION->instance = $instance;
-$usergraph = get_config('feedbackbox', 'usergraph');
 
-if (!$feedbackbox = $DB->get_record("feedbackbox", ["id" => $instance])) {
+if (!$feedbackbox = $DB->get_record('feedbackbox', ['id' => $instance])) {
     print_error('incorrectfeedbackbox', 'feedbackbox');
 }
-if (!$course = $DB->get_record("course", ["id" => $feedbackbox->course])) {
+if (!$course = $DB->get_record('course', ['id' => $feedbackbox->course])) {
     print_error('coursemisconf');
 }
-if (!$cm = get_coursemodule_from_instance("feedbackbox", $feedbackbox->id, $course->id)) {
+if (!$cm = get_coursemodule_from_instance('feedbackbox', $feedbackbox->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
 
@@ -58,7 +57,6 @@ if (!has_capability('mod/feedbackbox:manage', $context)) {
 }
 
 $sid = $feedbackbox->survey->id;
-
 $url = new moodle_url($CFG->wwwroot . '/mod/feedbackbox/report.php');
 if ($instance) {
     $url->param('instance', $instance);
@@ -69,6 +67,7 @@ if ($action) {
 if ($turnus) {
     $url->param('turnus', $turnus);
 }
+
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $feedbackbox->add_renderer($PAGE->get_renderer('mod_feedbackbox'));
@@ -79,6 +78,13 @@ if ($currentturnus != false) {
 } else {
     $currentturnus = 1;
 }
+$navbarelements = [
+    (object) ['url' => new moodle_url('/mod/feedbackbox/report.php',
+        ['instance' => $instance]), 'name' => get_string('viewstats', 'mod_feedbackbox')],
+    (object) ['url' => new moodle_url('/mod/feedbackbox/report.php',
+        ['instance' => $instance, 'action' => 'single']), 'name' => get_string('viewsingle', 'mod_feedbackbox')],
+];
+
 $turnus = $turnus === null ? $currentturnus : intval($turnus);
 if ($action == 'single') {
     $data = $feedbackbox->get_turnus_responses($turnus);
@@ -86,25 +92,16 @@ if ($action == 'single') {
     $PAGE->requires->js_call_amd('mod_feedbackbox/chartview',
         'init',
         [$feedbackbox->id, 'single', $turnus]);
+    $navbarelements[1]->active = true;
 } else {
     $data = $feedbackbox->get_feedback_responses();
     $PAGE->requires->js_call_amd('mod_feedbackbox/chartview',
         'init',
         [$feedbackbox->id, 'all', $data->totalparticipants]);
     $data->all = true;
+    $navbarelements[0]->active = true;
 }
-$data->navbarelements = [
-    (object) ['url' => new moodle_url('/mod/feedbackbox/report.php',
-        ['instance' => $instance]), 'name' => get_string('viewstats', 'mod_feedbackbox')],
-    (object) ['url' => new moodle_url('/mod/feedbackbox/report.php',
-        ['instance' => $instance, 'action' => 'single']), 'name' => get_string('viewsingle', 'mod_feedbackbox')],
-];
-if ($action == 'single') {
-    $data->navbarelements[1]->active = true;
-} else {
-    $data->navbarelements[0]->active = true;
-}
-
+$data->navbarelements = $navbarelements;
 
 $PAGE->requires->css('/mod/feedbackbox/style/chart.css');
 echo $feedbackbox->renderer->header();

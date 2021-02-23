@@ -29,6 +29,56 @@ require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
 
 class mod_feedbackbox_mod_form extends moodleform_mod {
 
+    public function data_preprocessing(&$defaultvalues) {
+        return;
+    }
+
+    /**
+     * Enforce validation rules here
+     *
+     * @param array $data  array of ("fieldname"=>value) of submitted data
+     * @param array $files array of uploaded files "element_name"=>tmp_file_path
+     * @return array
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function validation($data, $files) {
+        GLOBAL $DB;
+        $errors = parent::validation($data, $files);
+        if ($this->get_instance() != 0 && $this->get_instance() != null && $this->get_instance() != '') {
+            $entry = $DB->get_record('feedbackbox', ['id' => $this->get_instance()], '*', MUST_EXIST);
+            $data['opendate'] = $entry->opendate;
+        }
+        // Check open and close times are consistent.
+        if ($data['opendate'] && $data['closedate'] &&
+            $data['closedate'] < $data['opendate']) {
+            $errors['closedate'] = get_string('closebeforeopen', 'mod_feedbackbox');
+        }
+        return $errors;
+    }
+
+    /**
+     * @return array
+     * @throws coding_exception
+     */
+    public function add_completion_rules() {
+        $mform =& $this->_form;
+        $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'feedbackbox'));
+        return ['completionsubmit'];
+    }
+
+    /**
+     * @param array $data
+     * @return bool
+     */
+    public function completion_rule_enabled($data) {
+        return !empty($data['completionsubmit']);
+    }
+
+    /**
+     * @throws coding_exception
+     * @throws dml_exception
+     */
     protected function definition() {
         GLOBAL $DB;
         $mform =& $this->_form;
@@ -43,7 +93,7 @@ class mod_feedbackbox_mod_form extends moodleform_mod {
                 3 => get_string('turnusweek2', 'mod_feedbackbox'),
                 4 => get_string('turnusweek3', 'mod_feedbackbox')
             ]);
-        if ($this->get_instance() != 0 && $this->get_instance() != null && $this->get_instance() != "") {
+        if ($this->get_instance() != 0 && $this->get_instance() != null && $this->get_instance() != '') {
             $entry = $DB->get_record('feedbackbox', ['id' => $this->get_instance()], '*', MUST_EXIST);
             $mform->addElement('static',
                 'opendate1',
@@ -67,44 +117,6 @@ class mod_feedbackbox_mod_form extends moodleform_mod {
             get_string('notifystudents_help', 'mod_feedbackbox'));
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
-    }
-
-    public function data_preprocessing(&$defaultvalues) {
-        global $DB;
-    }
-
-    /**
-     * Enforce validation rules here
-     *
-     * @param array $data  array of ("fieldname"=>value) of submitted data
-     * @param array $files array of uploaded files "element_name"=>tmp_file_path
-     * @return array
-     * @throws coding_exception
-     * @throws dml_exception
-     */
-    public function validation($data, $files) {
-        GLOBAL $DB;
-        $errors = parent::validation($data, $files);
-        if ($this->get_instance() != 0 && $this->get_instance() != null && $this->get_instance() != "") {
-            $entry = $DB->get_record('feedbackbox', ['id' => $this->get_instance()], '*', MUST_EXIST);
-            $data['opendate'] = $entry->opendate;
-        }
-        // Check open and close times are consistent.
-        if ($data['opendate'] && $data['closedate'] &&
-            $data['closedate'] < $data['opendate']) {
-            $errors['closedate'] = get_string('closebeforeopen', 'mod_feedbackbox');
-        }
-        return $errors;
-    }
-
-    public function add_completion_rules() {
-        $mform =& $this->_form;
-        $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'feedbackbox'));
-        return ['completionsubmit'];
-    }
-
-    public function completion_rule_enabled($data) {
-        return !empty($data['completionsubmit']);
     }
 
 }

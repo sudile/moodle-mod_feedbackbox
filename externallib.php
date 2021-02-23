@@ -39,17 +39,30 @@ require_once($CFG->dirroot . '/mod/feedbackbox/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 3.0
  */
-class mod_feedbackbox_external extends \external_api {
+class mod_feedbackbox_external extends external_api {
 
+    /**
+     * @return external_function_parameters
+     * @noinspection PhpUnused
+     */
     public static function get_chartdata_single_parameters() {
-        return new \external_function_parameters(
+        return new external_function_parameters(
             [
-                'feedbackboxid' => new \external_value(PARAM_INT, 'feedbackbox id'),
-                'turnus' => new \external_value(PARAM_INT, 'Course module id', VALUE_OPTIONAL),
+                'feedbackboxid' => new external_value(PARAM_INT, 'feedbackbox id'),
+                'turnus' => new external_value(PARAM_INT, 'Course module id', VALUE_OPTIONAL),
             ]
         );
     }
 
+    /**
+     * @param $feedbackboxid
+     * @param $turnus
+     * @return stdClass
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     * @noinspection PhpUnused
+     */
     public static function get_chartdata_single($feedbackboxid, $turnus) {
         GLOBAl $DB, $USER;
         $result = new stdClass();
@@ -68,28 +81,44 @@ class mod_feedbackbox_external extends \external_api {
         return $result;
     }
 
+    /**
+     * @return external_single_structure
+     * @noinspection PhpUnused
+     */
     public static function get_chartdata_single_returns() {
-        return new \external_single_structure(
+        return new external_single_structure(
             [
-                'data' => new \external_multiple_structure(
-                    new \external_value(PARAM_FLOAT, 'data', VALUE_OPTIONAL)
+                'data' => new external_multiple_structure(
+                    new external_value(PARAM_FLOAT, 'data', VALUE_OPTIONAL)
                 ),
-                'labels' => new \external_multiple_structure(
-                    new \external_value(PARAM_TEXT, 'label', VALUE_OPTIONAL)
+                'labels' => new external_multiple_structure(
+                    new external_value(PARAM_TEXT, 'label', VALUE_OPTIONAL)
                 )
             ]
         );
     }
 
+    /**
+     * @return external_function_parameters
+     * @noinspection PhpUnused
+     */
     public static function get_chartdata_multiple_parameters() {
-        return new \external_function_parameters(
+        return new external_function_parameters(
             [
-                'feedbackboxid' => new \external_value(PARAM_INT, 'feedbackbox id'),
-                'turnus' => new \external_value(PARAM_INT, 'Course module id', VALUE_OPTIONAL),
+                'feedbackboxid' => new external_value(PARAM_INT, 'feedbackbox id'),
+                'turnus' => new external_value(PARAM_INT, 'Course module id', VALUE_OPTIONAL),
             ]
         );
     }
 
+    /**
+     * @param $feedbackboxid
+     * @return stdClass
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     * @noinspection PhpUnused
+     */
     public static function get_chartdata_multiple($feedbackboxid) {
         GLOBAl $DB, $USER;
         $result = new stdClass();
@@ -111,13 +140,17 @@ class mod_feedbackbox_external extends \external_api {
         return $result;
     }
 
+    /**
+     * @return external_single_structure
+     * @noinspection PhpUnused
+     */
     public static function get_chartdata_multiple_returns() {
-        return new \external_single_structure(
+        return new external_single_structure(
             [
-                'data' => new \external_multiple_structure(
-                    new \external_single_structure([
-                        'rating' => new \external_value(PARAM_FLOAT, 'rating', VALUE_OPTIONAL),
-                        'participants' => new \external_value(PARAM_INT, 'participants', VALUE_OPTIONAL),
+                'data' => new external_multiple_structure(
+                    new external_single_structure([
+                        'rating' => new external_value(PARAM_FLOAT, 'rating', VALUE_OPTIONAL),
+                        'participants' => new external_value(PARAM_INT, 'participants', VALUE_OPTIONAL),
                     ])
                 )
             ]

@@ -30,7 +30,6 @@ use core_user;
 use mod_feedbackbox\feedbackbox;
 use moodle_exception;
 use moodle_url;
-use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -40,13 +39,12 @@ class turnusavailable extends message {
     /**
      * reportavailable constructor.
      *
-     * @param $to          stdClass
+     * @param $users
      * @param $feedbackbox feedbackbox
-     * @param $turnus      stdClass
-     * @throws moodle_exception
      * @throws coding_exception
+     * @throws moodle_exception
      */
-    public function __construct($users, $feedbackbox, $turnus) {
+    public function __construct($users, $feedbackbox) {
         $this->component = 'mod_feedbackbox';
         $this->name = 'turnusavailable';
         $this->userfrom = core_user::get_noreply_user();

@@ -25,19 +25,10 @@
 namespace mod_feedbackbox\question;
 defined('MOODLE_INTERNAL') || die();
 
-use coding_exception;
 use html_writer;
 use mod_feedbackbox\responsetype\response\response;
-use MoodleQuickForm;
 
 class essay extends text {
-
-    /**
-     * @return object|string
-     */
-    protected function responseclass() {
-        return '\\mod_feedbackbox\\responsetype\\text';
-    }
 
     /**
      * @return string
@@ -62,6 +53,22 @@ class essay extends text {
      */
     public function response_template() {
         return false;
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return false;
+    }
+
+    /**
+     * @return object|string
+     */
+    protected function responseclass() {
+        return '\\mod_feedbackbox\\responsetype\\text';
     }
 
     /**
@@ -142,14 +149,5 @@ Immer her damit!
         $output .= $answer;
         $output .= '</div>';
         return $output;
-    }
-
-    /**
-     * True if question provides mobile support.
-     *
-     * @return bool
-     */
-    public function supports_mobile() {
-        return false;
     }
 }

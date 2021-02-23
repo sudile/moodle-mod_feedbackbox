@@ -24,6 +24,7 @@
  */
 
 namespace mod_feedbackbox\question\choice;
+
 use coding_exception;
 use dml_exception;
 
@@ -83,6 +84,13 @@ class choice {
     }
 
     /**
+     * Return the table name for choice.
+     */
+    public static function tablename() {
+        return self::TABLE;
+    }
+
+    /**
      * Create and return a choice object from data.
      *
      * @param object | array $choicedata The data to load.
@@ -105,14 +113,16 @@ class choice {
             $choicedata['questionid'] = $choicedata['question_id'];
         }
 
-        return new choice($choicedata['id'], $choicedata['questionid'], $choicedata['content'], $choicedata['value']);
+        return new choice($choicedata['id'], $choicedata['questionid'], $choicedata['content'], '');
     }
 
     /**
-     * Return the table name for choice.
+     * Return true if the choice object is an "other" choice.
+     *
+     * @return bool
      */
-    public static function tablename() {
-        return self::TABLE;
+    public function is_other_choice() {
+        return (self::content_is_other_choice($this->content));
     }
 
     /**
@@ -126,12 +136,13 @@ class choice {
     }
 
     /**
-     * Return true if the choice object is an "other" choice.
+     * Return the string to display for an "other" option for this object. If the option is not an "other", return false.
      *
-     * @return bool
+     * @return string | bool
+     * @throws coding_exception
      */
-    public function is_other_choice() {
-        return (self::content_is_other_choice($this->content));
+    public function other_choice_display() {
+        return self::content_other_choice_display($this->content);
     }
 
     /**
@@ -151,13 +162,12 @@ class choice {
     }
 
     /**
-     * Return the string to display for an "other" option for this object. If the option is not an "other", return false.
+     * Return the string to use as an input name for an other choice.
      *
-     * @return string | bool
-     * @throws coding_exception
+     * @return string
      */
-    public function other_choice_display() {
-        return self::content_other_choice_display($this->content);
+    public function other_choice_name() {
+        return self::id_other_choice_name($this->id);
     }
 
     /**
@@ -168,15 +178,5 @@ class choice {
      */
     static public function id_other_choice_name($choiceid) {
         return 'o' . $choiceid;
-    }
-
-    /**
-     * Return the string to use as an input name for an other choice.
-     *
-     * @param int $choiceid
-     * @return string
-     */
-    public function other_choice_name() {
-        return self::id_other_choice_name($this->id);
     }
 }

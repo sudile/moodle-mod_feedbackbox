@@ -23,9 +23,12 @@
  */
 
 namespace mod_feedbackbox\responsetype;
-defined('MOODLE_INTERNAL') || die();
 
-use mod_feedbackbox\db\bulk_sql_config;
+use coding_exception;
+use mod_feedbackbox\question\question;
+use stdClass;
+
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class for describing a response.
@@ -36,7 +39,7 @@ use mod_feedbackbox\db\bulk_sql_config;
 abstract class responsetype {
 
     // Class properties.
-    /** @var \mod_feedbackbox\question\question $question The question for this response. */
+    /** @var question $question The question for this response. */
     public $question;
 
     /** @var int $responseid The id of the response this is for. */
@@ -48,11 +51,11 @@ abstract class responsetype {
     /**
      * responsetype constructor.
      *
-     * @param \mod_feedbackbox\question\question $question
-     * @param int|null                           $responseid
-     * @param array                              $choices
+     * @param question $question
+     * @param int|null $responseid
+     * @param array    $choices
      */
-    public function __construct(\mod_feedbackbox\question\question $question,
+    public function __construct(question $question,
         int $responseid = null,
         array $choices = []) {
         $this->question = $question;
@@ -76,16 +79,51 @@ abstract class responsetype {
      * @return array
      */
     static public function all_response_tables() {
-        return ['feedbackbox_response_bool', 'feedbackbox_response_date', 'feedbackbox_response_other',
-            'feedbackbox_response_rank', 'feedbackbox_response_text', 'feedbackbox_resp_multiple',
-            'feedbackbox_resp_single'];
+        return ['feedbackbox_response_text', 'feedbackbox_resp_multiple', 'feedbackbox_resp_single'];
+    }
+
+    /**
+     * Return an array of answers by question/choice for the given response. Must be implemented by the subclass.
+     *
+     * @param int $rid The response id.
+     * @return array
+     */
+    static public function response_select($rid) {
+        return [];
+    }
+
+    /**
+     * Return an array of answer objects by question for the given response id.
+     * THIS SHOULD REPLACE response_select.
+     *
+     * @param int $rid The response id.
+     * @return array array answer
+     */
+    static public function response_answers_by_question($rid) {
+        return [];
+    }
+
+    /**
+     * Provide an array of answer objects from mobile data for the question.
+     *
+     * @param stdClass $responsedata All of the responsedata as an object.
+     * @param question $question
+     * @return array \mod_feedbackbox\responsetype\answer\answer An array of answer objects.
+     */
+    static public function answers_from_appdata($responsedata, $question) {
+        // In most cases this can be a direct call to answers_from_webform with the one modification below. Override when this will
+        // not work.
+        if (isset($responsedata->{'q' . $question->id}) && !empty($responsedata->{'q' . $question->id})) {
+            $responsedata->{'q' . $question->id} = $responsedata->{'q' . $question->id}[0];
+        }
+        return static::answers_from_webform($responsedata, $question);
     }
 
     /**
      * Provide an array of answer objects from web form data for the question.
      *
-     * @param \stdClass                          $responsedata All of the responsedata as an object.
-     * @param \mod_feedbackbox\question\question $question
+     * @param stdClass $responsedata All of the responsedata as an object.
+     * @param question $question
      * @return array \mod_feedbackbox\responsetype\answer\answer An array of answer objects.
      */
     abstract static public function answers_from_webform($responsedata, $question);
@@ -101,8 +139,8 @@ abstract class responsetype {
     /**
      * Provide the result information for the specified result records.
      *
-     * @param int|array $rids      - A single response id, or array.
-     * @param boolean   $anonymous - Whether or not responses are anonymous.
+     * @param bool    $rids      - A single response id, or array.
+     * @param boolean $anonymous - Whether or not responses are anonymous.
      * @return array - Array of data records.
      */
     abstract public function get_results($rids = false, $anonymous = false);
@@ -110,9 +148,9 @@ abstract class responsetype {
     /**
      * Provide the result information for the specified result records.
      *
-     * @param int|array $rids      - A single response id, or array.
-     * @param string    $sort      - Optional display sort.
-     * @param boolean   $anonymous - Whether or not responses are anonymous.
+     * @param bool    $rids      - A single response id, or array.
+     * @param string  $sort      - Optional display sort.
+     * @param boolean $anonymous - Whether or not responses are anonymous.
      * @return string - Display output.
      */
     abstract public function display_results($rids = false, $sort = '', $anonymous = false);
@@ -128,30 +166,19 @@ abstract class responsetype {
     }
 
     /**
-     * Provide a template for results screen if defined.
-     *
-     * @param bool $pdf
-     * @return mixed The template string or false.
-     */
-    public function results_template($pdf = false) {
-        return false;
-    }
-
-    /**
      * Gets the results tags for templates for questions with defined choices (single, multiple, boolean).
      *
      * @param        $weights
      * @param        $participants Number of feedbackbox participants.
      * @param        $respondents  Number of question respondents.
-     * @param        $showtotals
+     * @param int    $showtotals
      * @param string $sort
-     * @return \stdClass
-     * @throws \coding_exception
+     * @return stdClass
      */
     public function get_results_tags($weights, $participants, $respondents, $showtotals = 1, $sort = '') {
         global $CFG;
 
-        $pagetags = new \stdClass();
+        $pagetags = new stdClass();
         $precision = 0;
         $alt = '';
         $imageurl = $CFG->wwwroot . '/mod/feedbackbox/images/';
@@ -171,7 +198,7 @@ abstract class responsetype {
             $pagetags->responses = [];
             $evencolor = false;
             foreach ($weights as $content => $num) {
-                $response = new \stdClass();
+                $response = new stdClass();
                 $response->text = format_text($content, FORMAT_HTML, ['noclean' => true]);
                 if ($num > 0) {
                     $percent = round((float) $num / (float) $respondents * 100.0);
@@ -207,7 +234,7 @@ abstract class responsetype {
             } // End while.
 
             if ($showtotals) {
-                $pagetags->total = new \stdClass();
+                $pagetags->total = new stdClass();
                 if ($respondents > 0) {
                     $percent = round((float) $respondents / (float) $participants * 100.0);
                 } else {
@@ -240,78 +267,16 @@ abstract class responsetype {
     }
 
     /**
-     * Provide the feedback scores for all requested response id's. This should be provided only by questions that provide feedback.
-     *
-     * @param array $rids
-     * @return array | boolean
-     */
-    public function get_feedback_scores(array $rids) {
-        return false;
-    }
-
-    /**
-     * Return an array of answers by question/choice for the given response. Must be implemented by the subclass.
-     *
-     * @param int $rid The response id.
-     * @return array
-     */
-    static public function response_select($rid) {
-        return [];
-    }
-
-    /**
-     * Return an array of answer objects by question for the given response id.
-     * THIS SHOULD REPLACE response_select.
-     *
-     * @param int $rid The response id.
-     * @return array array answer
-     */
-    static public function response_answers_by_question($rid) {
-        return [];
-    }
-
-    /**
-     * Provide an array of answer objects from mobile data for the question.
-     *
-     * @param \stdClass                          $responsedata All of the responsedata as an object.
-     * @param \mod_feedbackbox\question\question $question
-     * @return array \mod_feedbackbox\responsetype\answer\answer An array of answer objects.
-     */
-    static public function answers_from_appdata($responsedata, $question) {
-        // In most cases this can be a direct call to answers_from_webform with the one modification below. Override when this will
-        // not work.
-        if (isset($responsedata->{'q' . $question->id}) && !empty($responsedata->{'q' . $question->id})) {
-            $responsedata->{'q' . $question->id} = $responsedata->{'q' . $question->id}[0];
-        }
-        return static::answers_from_webform($responsedata, $question);
-    }
-
-    /**
-     * Return all the fields to be used for users in bulk feedbackbox sql.
-     *
-     * @return string
-     * @author: Guy Thomas
-     */
-    protected function user_fields_sql() {
-        $userfieldsarr = get_all_user_name_fields();
-        $userfieldsarr = array_merge($userfieldsarr, ['username', 'department', 'institution']);
-        $userfields = '';
-        foreach ($userfieldsarr as $field) {
-            $userfields .= $userfields === '' ? '' : ', ';
-            $userfields .= 'u.' . $field;
-        }
-        $userfields .= ', u.id as usrid';
-        return $userfields;
-    }
-
-    /**
      * Return sql and params for getting responses in bulk.
      *
      * @param int|array $feedbackboxids One id, or an array of ids.
      * @param bool|int  $responseid
      * @param bool|int  $userid
      * @param bool|int  $groupid
+     * @param int       $showincompletes
      * @return array
+     * @throws \dml_exception
+     * @throws coding_exception
      * @author Guy Thomas
      */
     public function get_bulk_sql($feedbackboxids,
@@ -362,15 +327,6 @@ abstract class responsetype {
     }
 
     /**
-     * Configure bulk sql
-     *
-     * @return bulk_sql_config
-     */
-    protected function bulk_sql_config() {
-        return new bulk_sql_config('feedbackbox_response_other', 'qro', true, true, false);
-    }
-
-    /**
      * Return sql for getting responses in bulk.
      *
      * @return string
@@ -403,12 +359,30 @@ abstract class responsetype {
 
         return "
             SELECT " . $DB->sql_concat_join("'_'", ['qr.id', "'" . $this->question->helpname() . "'", $alias . '.id']) . " AS id,
-                   qr.submitted, qr.complete, qr.grade, qr.userid, $userfields, qr.id AS rid, $alias.question_id,
+                   qr.submitted, qr.complete, qr.userid, $userfields, qr.id AS rid, $alias.question_id,
                    $extraselect
               FROM {feedbackbox_response} qr
               JOIN {" . $config->table . "} $alias
                 ON $alias.response_id = qr.id
         ";
+    }
+
+    /**
+     * Return all the fields to be used for users in bulk feedbackbox sql.
+     *
+     * @return string
+     * @author: Guy Thomas
+     */
+    protected function user_fields_sql() {
+        $userfieldsarr = get_all_user_name_fields();
+        $userfieldsarr = array_merge($userfieldsarr, ['username', 'department', 'institution']);
+        $userfields = '';
+        foreach ($userfieldsarr as $field) {
+            $userfields .= $userfields === '' ? '' : ', ';
+            $userfields .= 'u.' . $field;
+        }
+        $userfields .= ', u.id as usrid';
+        return $userfields;
     }
 
 }

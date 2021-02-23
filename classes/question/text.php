@@ -48,13 +48,6 @@ class text extends question {
     }
 
     /**
-     * @return object|string
-     */
-    protected function responseclass() {
-        return '\\mod_feedbackbox\\responsetype\\text';
-    }
-
-    /**
      * @return string
      */
     public function helpname() {
@@ -77,6 +70,22 @@ class text extends question {
      */
     public function response_template() {
         return 'mod_feedbackbox/response_text';
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return false;
+    }
+
+    /**
+     * @return object|string
+     */
+    protected function responseclass() {
+        return '\\mod_feedbackbox\\responsetype\\text';
     }
 
     /**
@@ -116,14 +125,5 @@ class text extends question {
             $resptags->content = format_text($answer->value, FORMAT_HTML);
         }
         return $resptags;
-    }
-
-    /**
-     * True if question provides mobile support.
-     *
-     * @return bool
-     */
-    public function supports_mobile() {
-        return false;
     }
 }

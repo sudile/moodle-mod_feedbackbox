@@ -33,10 +33,6 @@ defined('MOODLE_INTERNAL') || die();
 
 class radio extends question {
 
-    protected function responseclass() {
-        return '\\mod_feedbackbox\\responsetype\\single';
-    }
-
     public function helpname() {
         return 'radiobuttons';
     }
@@ -76,18 +72,39 @@ class radio extends question {
     }
 
     /**
-     * True if question type supports feedback options. False by default.
+     * Check question's form data for complete response.
+     *
+     * @param object $responsedata The data entered into the response.
+     * @return boolean
      */
-    public function supports_feedback() {
-        return true;
+    public function response_complete($responsedata) {
+        if (isset($responsedata->{'q' . $this->id}) && ($this->required()) &&
+            (strpos($responsedata->{'q' . $this->id}, 'other_') !== false)) {
+            return (trim($responsedata->{'q' . $this->id . '' . substr($responsedata->{'q' . $this->id}, 5)}) != false);
+        } else {
+            return parent::response_complete($responsedata);
+        }
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return false;
+    }
+
+    protected function responseclass() {
+        return '\\mod_feedbackbox\\responsetype\\single';
     }
 
     /**
      * Return the context tags for the check question template.
      *
      * @param response $response
-     * @param array                                           $dependants Array of all questions/choices depending on this question.
-     * @param boolean                                         $blankfeedbackbox
+     * @param array    $dependants Array of all questions/choices depending on this question.
+     * @param boolean  $blankfeedbackbox
      * @return object The check question context tags.
      * @throws coding_exception
      */
@@ -225,29 +242,5 @@ class radio extends question {
         }
 
         return $resptags;
-    }
-
-    /**
-     * Check question's form data for complete response.
-     *
-     * @param object $responsedata The data entered into the response.
-     * @return boolean
-     */
-    public function response_complete($responsedata) {
-        if (isset($responsedata->{'q' . $this->id}) && ($this->required()) &&
-            (strpos($responsedata->{'q' . $this->id}, 'other_') !== false)) {
-            return (trim($responsedata->{'q' . $this->id . '' . substr($responsedata->{'q' . $this->id}, 5)}) != false);
-        } else {
-            return parent::response_complete($responsedata);
-        }
-    }
-
-    /**
-     * True if question provides mobile support.
-     *
-     * @return bool
-     */
-    public function supports_mobile() {
-        return false;
     }
 }

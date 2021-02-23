@@ -52,9 +52,6 @@ class response {
     /** @var boolean $complete Flag for final submission of this response. */
     public $complete;
 
-    /** @var int $grade Numeric grade for this response (if applicable). */
-    public $grade;
-
     /** @var array $answers Array by question of array of answer objects. */
     public $answers;
     public $sec = null;
@@ -68,7 +65,6 @@ class response {
      * @param null $userid
      * @param null $submitted
      * @param null $complete
-     * @param null $grade
      * @param bool $addanswers
      * @throws dml_exception
      */
@@ -77,19 +73,29 @@ class response {
         $userid = null,
         $submitted = null,
         $complete = null,
-        $grade = null,
         $addanswers = true) {
         $this->id = $id;
         $this->feedbackboxid = $feedbackboxid;
         $this->userid = $userid;
         $this->submitted = $submitted;
         $this->complete = $complete;
-        $this->grade = $grade;
 
         // Add answers by questions that exist.
         if ($addanswers) {
             $this->add_questions_answers();
         }
+    }
+
+    /**
+     * Add the answers to each question in a question array of answers structure.
+     *
+     * @throws dml_exception
+     */
+    public function add_questions_answers() {
+        $this->answers = [];
+        $this->answers += multiple::response_answers_by_question($this->id);
+        $this->answers += single::response_answers_by_question($this->id);
+        $this->answers += text::response_answers_by_question($this->id);
     }
 
     /**
@@ -103,16 +109,14 @@ class response {
         if (!is_array($responsedata)) {
             $responsedata = (array) $responsedata;
         }
-
         $properties = array_keys(get_class_vars(__CLASS__));
         foreach ($properties as $property) {
             if (!isset($responsedata[$property])) {
                 $responsedata[$property] = null;
             }
         }
-
         return new response($responsedata['id'], $responsedata['feedbackboxid'], $responsedata['userid'],
-            $responsedata['submitted'], $responsedata['complete'], $responsedata['grade']);
+            $responsedata['submitted'], $responsedata['complete']);
     }
 
     /**
@@ -179,17 +183,5 @@ class response {
             }
         }
         return $response;
-    }
-
-    /**
-     * Add the answers to each question in a question array of answers structure.
-     *
-     * @throws dml_exception
-     */
-    public function add_questions_answers() {
-        $this->answers = [];
-        $this->answers += multiple::response_answers_by_question($this->id);
-        $this->answers += single::response_answers_by_question($this->id);
-        $this->answers += text::response_answers_by_question($this->id);
     }
 }

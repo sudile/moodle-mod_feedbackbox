@@ -55,9 +55,10 @@
     }}
 <!-- Begin HTML generated from question_check template. -->
 {{#qelements}}
-{{#choice}}
-<input id="{{choice.id}}" class="feedbackratecheckbox" value="{{choice.value}}" name="{{choice.name}}" type="checkbox" {{#choice.checked}}checked="checked"{{/choice.checked}} />
-<label for="{{choice.id}}">{{{choice.label}}}</label>
-{{/choice}}
+    {{#choice}}
+        <input id="{{choice.id}}" class="feedbackratecheckbox" value="{{choice.value}}" name="{{choice.name}}"
+               type="checkbox" {{#choice.checked}}checked="checked"{{/choice.checked}} />
+        <label for="{{choice.id}}">{{{choice.label}}}</label>
+    {{/choice}}
 {{/qelements}}
 <!-- End HTML generated from question_check template. -->

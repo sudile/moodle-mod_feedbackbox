@@ -30,7 +30,6 @@
     * respondentinfo - string: HTML of any specific response/respondent information.
     * title - string: Text title of the feedbackbox.
     * printblank - string: HTML of optional print blank feedbackbox control.
-    * subtitle - string: Optional text subtitle.
     * addinfo - string: Optional HTML additional information.
     * message - string: Any message HTML text.
     * formstart - string: Form start HTML.
@@ -44,7 +43,6 @@
         "notifications": "<div>Notification one</div>",
         "respondentinfo": "<div>This is respondent information</div>",
         "title": "Test feedbackbox",
-        "subtitle": "This is a subtitle",
         "addinfo": "<div>This is additional information.</div>",
         "message": "<div>This is a message.</div>",
         "formstart": "<form id=\"formid\" method=\"post\" action=\"index.php\">",
@@ -61,9 +59,10 @@
     {{#notifications}}{{{.}}}{{/notifications}}
     {{{respondentinfo}}}
     {{{printblank}}}
-    {{#subtitle}}<h4 class="surveySubTitle">{{.}}</h4>{{/subtitle}}
-    {{#addinfo}}<div class="addInfo">{{{.}}}</div>{{/addinfo}}
-    {{#message}}<div class="message">{{{.}}}</div>{{/message}}
+    {{#addinfo}}
+        <div class="addInfo">{{{.}}}</div>{{/addinfo}}
+    {{#message}}
+        <div class="message">{{{.}}}</div>{{/message}}
     {{#continue}}{{{continue}}}{{/continue}}
     <div class="generalbox">
         {{{formstart}}}

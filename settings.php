@@ -23,8 +23,17 @@
  */
 
 defined('MOODLE_INTERNAL') || die;
-
-if ($ADMIN->fulltree) {
+if (isset($ADMIN) && $ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('feedbackbox/allowemailreporting',
         get_string('configemailreporting', 'feedbackbox'), get_string('configemailreportinglong', 'feedbackbox'), 0));
+
+    $secret = get_config('feedbackbox', 'secret');
+    if ($secret == null) {
+        $secret = bin2hex(random_bytes(50));
+        set_config('secret', $secret, 'feedbackbox');
+    }
+
+    $settings->add(new admin_setting_configtext('feedbackbox/secret',
+        get_string('secret', 'feedbackbox'),
+        get_string('secret_help', 'feedbackbox'), $secret));
 }

@@ -99,17 +99,10 @@ class essay extends text {
         } else {
             $value = '';
         }
-        if ($canusehtmleditor) {
-            $editor = editors_get_preferred_editor();
-            $editor->use_editor($name, feedbackbox_get_editor_options($this->context));
-            $texteditor = html_writer::tag('textarea',
-                $value,
-                ['id' => $name, 'name' => $name, 'rows' => $rows, 'cols' => $cols]);
-        } else {
-            $texteditor = html_writer::tag('textarea',
-                $value,
-                ['id' => $name, 'name' => $name, 'rows' => $rows, 'cols' => $cols]);
-        }
+        $texteditor = html_writer::tag('textarea',
+            $value,
+            ['id' => $name, 'name' => $name, 'rows' => $rows, 'cols' => $cols]);
+
         // If the position equals to 9 its a good text request.
         if ($this->position == 9) {
             $output .= '<div class="infotext"><p><b>Erläutere deine Auswahl an Tags im Freitextfeld.</b><br/>

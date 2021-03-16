@@ -239,8 +239,7 @@ Um eine bestimmte Anzahl von Häkchen zu erzwingen, setzen Sie  **Min.** und **M
 $string['misconfigured'] = 'Der Kurs ist falsch konfiguriert';
 $string['missingname'] = 'Die Frage {$a} kann in diesem Feedback nicht genutzt werden, weil sie keinen Namen hat.';
 $string['missingnameandrequired'] = 'Die Frage {$a} kann in diesem Feedback nicht genutzt werden, weil sie keinen Namen hat und nicht auf \'erforderlich\' gesetzt ist.';
-$string['missingquestion'] = 'Bitte beantworte die Pflichtfrage ';
-$string['missingquestions'] = 'Bitte beantworte die Pflichtfragen: ';
+$string['missingquestion'] = 'Bitte beantworte die Pflichtfrage.';
 $string['missingrequired'] = 'Die Frage {$a} kann in diesem Feedback nicht genutzt werden, weil sie nicht auf \'erforderlich\' gesetzt ist.';
 $string['modulename'] = 'Feedback Box';
 $string['modulename_help'] = 'Mit der "Feedback Box"-Aktivität können Sie von Ihren Studierenden Feedback zu Ihren Lehrveranstaltungen erhalten.<br/><br/><b>Credits</b><br/><br/>
@@ -535,13 +534,18 @@ $string['turnusweek2'] = 'Alle zwei Wochen';
 $string['turnusweek3'] = 'Alle drei Wochen';
 $string['cminfodescription'] = '<b>Runde {$a->id}: {$a->fromstr} bis {$a->tostr}</b> - noch {$a->daysleft}<br/>Dein Feedback zur Lehrveranstaltung: in 3 Schritten, schnell und anonym.';
 $string['noturnusfound'] = 'Keine Abgabemöglichkeit gefunden.';
+$string['noturnusfound_open'] = 'Die erste Runde beginnt am {$a}.';
+$string['noturnusfound_close'] = 'Die letzte Runde wurde bereits geschlossen. Es sind keine Abgaben mehr möglich.';
 $string['cminfo_days'] = 'Tage';
 $string['cminfo_day'] = 'Tag';
+$string['cminfo_until_time'] = 'noch bis heute, {$a->date} um {$a->time} Uhr';
+$string['cminfodescription_time'] = '<b>Runde {$a->id}: {$a->fromstr} bis {$a->tostr}</b> - {$a->daysleft}<br/>Dein Feedback zur Lehrveranstaltung: in 3 Schritten, schnell und anonym.';
+
 $string['feedbackboxadvice'] = '<b>Hinweise zur Feedback Box</b></br><ul>
 <li>Bitte beachte: Es geht bei der Bewertung nicht primär um die Lehrperson, sondern um die gesamte Lehrveranstaltung, dazu gehören auch deine Kommiliton*innen und die eigene Selbstreflexion.</li>
 <li>Damit dein Feedback gern angenommen wird, formuliere dieses bitte respektvoll und konstruktiv.</li>
 <li>Du bist nicht gezwungen, regelmäßig Feedback einzureichen, dies ist ein optionales Angebot. Allerdings hilft es dir, deinen Kommiliton*innen und natürlich der Lehrperson bei der Gestaltung der Lehre und damit auch deinem Lernfortschritt.</li>
-<li>Dein abgebendes Feedback ist in jedem Fall anonym und kann von der Lehrperson nicht auf dich zurückverfolgt werden.</li>
+<li>Dein abgegebenes Feedback ist in jedem Fall anonym und kann von der Lehrperson nicht auf dich zurückverfolgt werden.</li>
 <li>Die Auswertung des abgegebenen Feedbacks in Form von Emojis und Tags ist für alle sichtbar. Feedback in Form von Freitexten ist hingegen nur für die Lehrperson einsehbar.</li></ul></br>';
 $string['notification'] = 'Nachrichten senden';
 // Response message.
@@ -561,7 +565,7 @@ $string['report_howwell_title'] = 'Wie Studierende im Kurs zurecht kommen';
 
 $string['report_all_title'] = 'Gesamtübersicht';
 $string['report_all_avgfeedback'] = 'Durchschnitt aller Feedbackrunden';
-$string['report_all_participantcount'] = 'Teilnehmeranzahl';
+$string['report_all_participantcount'] = 'Teilnehmendenanzahl';
 $string['report_all_thisisgood'] = 'Das läuft besonders gut';
 $string['report_all_thisisbad'] = 'Das könnte besser laufen';
 
@@ -571,10 +575,22 @@ $string['report_sin_participants'] = 'Teilnehmende';
 $string['report_sin_thisisgood'] = 'Was gut läuft';
 $string['report_sin_thisisbad'] = 'Was besser laufen könnte';
 $string['report_sin_current'] = 'aktuell';
-$string['report_sin_old'] = 'alt';
+$string['report_sin_old'] = 'abgeschlossen';
 
 $string['notifystudents'] = 'Sende Erinnerung an Studierende';
 $string['notifystudents_help'] = 'Studierende erhalten eine Erinnerung, das Feedback abzugeben';
 $string['secret'] = 'Key zum Verschlüsseln von Benutzer-IDs';
 $string['secret_help'] = 'Key, um Userid in Backups zu verschlüsseln. Beachten Sie, dass die Änderung des Keys, das Wiederherstellen von alten Feedbackbox-Userdaten verhindert.';
 $string['replay_attack_detected'] = 'Ein Benutzer wurde für eine nicht zugelassene response verwendet';
+
+$string['report_to_less_responses'] = 'Die Ergebnisse werden erst angezeigt, sobald drei oder mehr Personen ihr Feedback eingereicht haben.';
+
+$string['question_section_info_head'] = 'Wähle zutreffende Tags (Schlagwörter) aus.';
+$string['question_section_info_body'] = 'Mehrfachauswahl möglich.<br/> Es muss nicht in jeder Kategorie etwas ausgewählt werden.<br/>
+Die Formulierungen der Tags sind bewusst mehrdeutig. Im anschließenden Freitextfeld kannst<br/>
+du konkreter auf deine Auswahl eingehen und ergänzen, was genau du meinst.<br/>
+Immer her damit!';
+$string['question_radio_info_head'] = 'Wähle ein entsprechendes Emoji aus.';
+$string['question_radio_info_body'] = 'Bitte beachte: Es geht bei der Bewertung nicht primär um die Lehrperson, sondern um die gesamte<br/>
+Lehrveranstaltung – dazu gehören auch deine Kommiliton*innen und die eigene Selbstreflexion.';
+$string['downloadcsv'] = "Übersicht exportieren";

@@ -55,7 +55,7 @@ $feedbackbox->add_page(new viewpage());
 
 $PAGE->set_title(format_string($feedbackbox->name));
 $PAGE->set_heading(format_string($course->fullname));
-
+$PAGE->requires->css('/mod/feedbackbox/style/styles.css');
 echo $feedbackbox->renderer->header();
 $feedbackbox->page->add_to_page('feedbackboxname', format_string($feedbackbox->name));
 

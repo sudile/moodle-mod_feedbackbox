@@ -127,6 +127,9 @@ class renderer extends plugin_renderer_base {
                 'MEDIEN &amp; KOMMUNIKATION' => 'b/fb_medien'];
             $pagetags->caticon = $icons[$key];
             $pagetags->subquestion = true;
+            if ($pagetags->caticon == 'b/fb_gruppe') {
+                $pagetags->lastelement = true;
+            }
 
         }
         return $this->render_from_template('mod_feedbackbox/question_container', $pagetags);

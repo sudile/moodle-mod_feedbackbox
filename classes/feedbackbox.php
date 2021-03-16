@@ -312,7 +312,7 @@ class feedbackbox {
      * @throws moodle_exception
      */
     public function view() {
-        global $USER, $PAGE;
+        global $USER, $PAGE, $DB;
 
         $PAGE->set_title(format_string($this->name));
         $PAGE->set_heading(format_string($this->course->fullname));
@@ -342,6 +342,20 @@ class feedbackbox {
                 if ($completion->is_enabled($this->cm) && $this->completionsubmit) {
                     $completion->update_state($this->cm, COMPLETION_COMPLETE);
                 }
+
+                $turnus = $this->get_current_turnus();
+                $records = array_values($DB->get_records_sql(
+                    'SELECT * FROM {feedbackbox_response} WHERE ' .
+                    'feedbackboxid=? AND submitted > ? AND submitted < ? AND complete=\'y\'',
+                    [$this->id, $turnus->from, $turnus->to]));
+                $orgrecords = $records;
+                shuffle($records);
+                for ($i = 0; $i < count($orgrecords); $i++) {
+                    $obj = clone $records[$i];
+                    $obj->userid = $orgrecords[$i]->userid;
+                    $DB->update_record('feedbackbox_response', $obj);
+                }
+
                 $this->response_goto_thankyou();
             }
         }
@@ -736,9 +750,7 @@ class feedbackbox {
                 $strmissing = '';
             }
             if ($missing == 1) {
-                $message = get_string('missingquestion', 'feedbackbox') . $strmissing;
-            } else {
-                $message = get_string('missingquestions', 'feedbackbox') . $strmissing;
+                $message = get_string('missingquestion', 'feedbackbox');
             }
             if ($wrongformat) {
                 $message .= '<br />';
@@ -801,7 +813,7 @@ class feedbackbox {
             if (empty($qids)) {
                 return;
             } else {
-                list($qsql, $params) = $DB->get_in_or_equal($qids);
+                [$qsql, $params] = $DB->get_in_or_equal($qids);
                 $qsql = ' AND question_id ' . $qsql;
             }
 
@@ -1261,15 +1273,13 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
      * @noinspection PhpUnused
      */
     public function get_last_turnus() {
-        $data = $this->get_turnus_zones();
-        $last = new stdClass();
+        $data = array_reverse($this->get_turnus_zones());
         foreach ($data as $entry) {
-            if ($this->turnus != 1 && isset($last->to) && $entry->from < time() && $entry->to > time()) {
-                $last->fromstr = date('d.m.Y', $last->from);
-                $last->tostr = date('d.m.Y', $last->to);
-                return $last;
+            if ($this->turnus != 1 && $entry->to < time()) {
+                $entry->fromstr = date('d.m.Y', $entry->from);
+                $entry->tostr = date('d.m.Y', $entry->to);
+                return $entry;
             }
-            $last = $entry;
         }
         if ($this->turnus == 1) {
             $entry = end($data);
@@ -1292,7 +1302,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
      * @noinspection PhpUnused
      */
     public function get_feedback_responses_block($zone) {
-        GLOBAl $DB;
+        global $DB;
         $result = new stdClass();
 
         $ranking = $DB->get_records_sql('SELECT qc.id as "id",qc.content as "content"
@@ -1313,14 +1323,14 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             ' WHERE r.feedbackboxid=? AND r.submitted > ? AND r.submitted < ? GROUP BY rs.choice_id',
             [$this->id, $zone->from, $zone->to]);
         $result->rating = [0, 0, 0, 0];
-        $rankinglist = array_reverse(array_column($ranking, 'id'));
+        $rankinglist = array_column($ranking, 'id');
         foreach ($radiochoise as $choise) {
             $result->rating[array_search($choise->choice_id, $rankinglist)] = $choise->result;
         }
         $result->ratinglabel = array_reverse(array_column($ranking, 'content'));
 
         $positions = [4, 5, 6, 7, 8];
-        list($insql, $inparams) = $DB->get_in_or_equal($positions);
+        [$insql, $inparams] = $DB->get_in_or_equal($positions);
         $top3 = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
             ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
             ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
@@ -1356,9 +1366,21 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
      * @throws dml_exception
      */
     public function get_feedback_responses() {
-        GLOBAl $DB;
+        global $DB;
         $result = new stdClass();
         $zones = $this->get_turnus_zones();
+        $result->totalparticipants = count(get_enrolled_users(context_course::instance($this->course->id)));
+        if (intval($DB->get_field_sql('SELECT count(*) FROM {feedbackbox_response}' .
+                ' WHERE feedbackboxid=? AND complete=\'y\'',
+                [$this->id])) < 3) {
+            $result->zones = $zones;
+            $result->good = [];
+            $result->bad = [];
+            $result->tolessresults = true;
+            return $result;
+        }
+
+
         $ranking = $DB->get_fieldset_sql('SELECT qc.id FROM {feedbackbox_quest_choice} qc
             JOIN {feedbackbox_question} q ON qc.question_id = q.id WHERE q.surveyid = ? AND type_id = ?',
             [$this->survey->id, QUESRADIO]);
@@ -1384,9 +1406,8 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             }
         }
         $result->zones = $zones;
-        $result->totalparticipants = count(get_enrolled_users(context_course::instance($this->course->id)));
         $positions = [4, 5, 6, 7, 8];
-        list($insql, $inparams) = $DB->get_in_or_equal($positions);
+        [$insql, $inparams] = $DB->get_in_or_equal($positions);
         $top3 = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
             ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
             ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
@@ -1424,7 +1445,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
      * @throws moodle_exception
      */
     public function get_turnus_responses($turnus) {
-        GLOBAL $DB;
+        global $DB;
         $zones = $this->get_turnus_zones();
         $zoneid = array_search($turnus, array_column($zones, 'id'));
         if ($zoneid === false) {
@@ -1463,6 +1484,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             'SELECT count(*) FROM {feedbackbox_response}
             WHERE feedbackboxid=? AND submitted > ? AND submitted < ? AND complete=\'y\'',
             [$this->id, $zone->from, $zone->to]));
+
         $result->totalparticipants = count(get_enrolled_users(context_course::instance($this->course->id)));
 
         $radiochoise = $DB->get_records_sql(
@@ -1472,14 +1494,27 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             [$this->id, $zone->from, $zone->to]);
 
         $result->rating = [0, 0, 0, 0];
-        $rankinglist = array_reverse(array_column($ranking, 'id'));
+        $rankinglist = array_column($ranking, 'id');
         foreach ($radiochoise as $choise) {
-            $result->rating[array_search($choise->choice_id, $rankinglist)] = $choise->result;
+            if ($result->participants < 3) {
+                $result->rating[array_search($choise->choice_id, $rankinglist)] = 0;
+            } else {
+                $result->rating[array_search($choise->choice_id, $rankinglist)] = $choise->result;
+            }
+
         }
         $result->ratinglabel = array_reverse(array_column($ranking, 'content'));
+        if ($result->participants < 3) {
+            $result->goodchoises = [];
+            $result->badchoises = [];
+            $result->goodmessages = [];
+            $result->badmessages = [];
+            $result->tolessresults = true;
+            return $result;
+        }
 
         $positions = [4, 5, 6, 7, 8];
-        list($insql, $inparams) = $DB->get_in_or_equal($positions);
+        [$insql, $inparams] = $DB->get_in_or_equal($positions);
         $good = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
             ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
             ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
@@ -1488,7 +1523,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             $insql . ' GROUP BY qc.content ORDER BY result DESC',
             array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
         $result->goodchoises = array_values($good);
-        list($insql, $inparams) = $DB->get_in_or_equal($positions);
+        [$insql, $inparams] = $DB->get_in_or_equal($positions);
         $bad = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
             ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
             ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
@@ -1817,5 +1852,105 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             }
         }
         return false;
+    }
+
+    public function generate_csv() {
+        global $DB;
+        $head = ";Datum;;Teilnehmende;;1. Wie kommst du im Kurs zurecht?;;;;2. Was läuft gut?;;3. Was könnte besser laufen?;\n";
+        $head .= ";von;bis;nahmen teil;von insgesamt;Hypergalaktisch gut!;Läuft wie geschmiert!;Es ist okay.;Hilfe – ich komme gar nicht klar!;Tags;Kommentare;Tags;Kommentare\n";
+        $body = '';
+        $zones = $this->get_turnus_zones();
+        foreach ($zones as $zone) {
+            $line = 'Runde ' . $zone->id . ';' . date('d.m.Y', $zone->from) . ';' . date('d.m.Y', $zone->to) . ';';
+
+            $ranking = $DB->get_records_sql('SELECT qc.id as "id", qc.content as "content"
+            FROM {feedbackbox_quest_choice} qc
+            JOIN {feedbackbox_question} q ON qc.question_id = q.id WHERE q.surveyid = ? AND type_id = ?',
+                [$this->survey->id, QUESRADIO]);
+
+            $participants = intval($DB->get_field_sql(
+                'SELECT count(*) FROM {feedbackbox_response}
+            WHERE feedbackboxid=? AND submitted > ? AND submitted < ? AND complete=\'y\'',
+                [$this->id, $zone->from, $zone->to]));
+
+            $totalparticipants = count(get_enrolled_users(context_course::instance($this->course->id)));
+
+            $line .= $participants . ';' . $totalparticipants . ';';
+
+            $radiochoise = $DB->get_records_sql(
+                'SELECT choice_id, COUNT(*) as "result" FROM {feedbackbox_resp_single} rs' .
+                ' JOIN {feedbackbox_response} r ON rs.response_id = r.id AND r.complete=\'y\'' .
+                ' WHERE r.feedbackboxid=? AND r.submitted > ? AND r.submitted < ? GROUP BY rs.choice_id',
+                [$this->id, $zone->from, $zone->to]);
+
+            $rating = [0, 0, 0, 0];
+            $rankinglist = array_column($ranking, 'id');
+            foreach ($radiochoise as $choise) {
+                if ($participants < 3) {
+                    $rating[array_search($choise->choice_id, $rankinglist)] = 0;
+                } else {
+                    $rating[array_search($choise->choice_id, $rankinglist)] = $choise->result;
+                }
+            }
+            foreach ($rating as $rate) {
+                $line .= $rate . ';';
+            }
+
+            if ($participants < 3) {
+                $line .= ';;;';
+                $body .= $line . "\n";
+                continue;
+            }
+
+            $positions = [4, 5, 6, 7, 8];
+            [$insql, $inparams] = $DB->get_in_or_equal($positions);
+            $good = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
+                ' JOIN {feedbackbox_quest_choice} qc ON rm.choice_id = qc.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position ' .
+                $insql . ' GROUP BY qc.content ORDER BY result DESC',
+                array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
+            $goodchoises = array_values($good);
+            [$insql, $inparams] = $DB->get_in_or_equal($positions);
+            $bad = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
+                ' JOIN {feedbackbox_quest_choice} qc ON rm.choice_id = qc.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND NOT q.position ' .
+                $insql . ' GROUP BY qc.content ORDER BY result DESC',
+                array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
+            $badchoises = array_values($bad);
+
+            $goodmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rt.question_id = q.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
+                [$this->id, $zone->from, $zone->to, QUESESSAY, 9]));
+            $badmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rt.question_id = q.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
+                [$this->id, $zone->from, $zone->to, QUESESSAY, 17]));
+            foreach ($goodchoises as $gc) {
+                $line .= $gc->name . '(' . $gc->result . '), ';
+            }
+            $line = rtrim($line, ', ') . ';"';
+            foreach ($goodmessages as $gm) {
+                $line .= '„' . str_replace(';', '', $gm) . '“, ';
+            }
+            $line = rtrim($line, ', ') . '";';
+
+            foreach ($badchoises as $bc) {
+                $line .= $bc->name . '(' . $bc->result . '), ';
+            }
+            $line = rtrim($line, ', ') . ';"';
+            foreach ($badmessages as $bm) {
+                $line .= '„' . str_replace(';', '', $bm) . '“, ';
+            }
+            $line = rtrim($line, ', ') . '"';
+            $body .= $line . "\n";
+        }
+        return $head . $body;
     }
 }

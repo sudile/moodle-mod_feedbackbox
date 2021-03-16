@@ -134,8 +134,8 @@ class mod_feedbackbox_external extends external_api {
         $data = null;
         $data = $feedbackbox->get_feedback_responses();
         $result->data = [];
-        foreach ($data->zones as $entry) {
-            $result->data[] = (object) ['rating' => $entry->rating, 'participants' => $entry->participants];
+        foreach ($data->zones as $entry) { // round
+            $result->data[] = (object) ['rating' => round($entry->rating, 2), 'participants' => $entry->participants];
         }
         return $result;
     }

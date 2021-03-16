@@ -152,7 +152,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                                     display: false
                                 },
                                 tooltips: {
-                                    enabled: false
+                                    enabled: true
                                 },
                                 scales: {
                                     yAxes: [{
@@ -196,7 +196,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                                     yAxis.ticks.forEach((value, index) => {
                                         if (value >= 1 && value <= 4 && value % 1 === 0) {
                                             var y = yAxis.getPixelForTick(index);
-                                            ctx.drawImage(images[value - 1], 0, y, 30, 30);
+                                            ctx.drawImage(images[images.length - value], 0, y, 30, 30);
                                         }
                                     });
                                 }
@@ -218,7 +218,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                                     display: false
                                 },
                                 tooltips: {
-                                    enabled: false
+                                    enabled: true
                                 },
                                 scales: {
                                     yAxes: [{

@@ -101,6 +101,7 @@ if ($action == 'single') {
     $data->all = true;
     $navbarelements[0]->active = true;
 }
+$data->downloadcsv = moodle_url::make_pluginfile_url($context->id, 'mod_feedbackbox', 'csv', 0, '/download', '/csv');
 $data->navbarelements = $navbarelements;
 
 $PAGE->requires->css('/mod/feedbackbox/style/chart.css');

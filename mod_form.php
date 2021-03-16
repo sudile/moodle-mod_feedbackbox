@@ -43,7 +43,7 @@ class mod_feedbackbox_mod_form extends moodleform_mod {
      * @throws dml_exception
      */
     public function validation($data, $files) {
-        GLOBAL $DB;
+        global $DB;
         $errors = parent::validation($data, $files);
         if ($this->get_instance() != 0 && $this->get_instance() != null && $this->get_instance() != '') {
             $entry = $DB->get_record('feedbackbox', ['id' => $this->get_instance()], '*', MUST_EXIST);
@@ -80,7 +80,7 @@ class mod_feedbackbox_mod_form extends moodleform_mod {
      * @throws dml_exception
      */
     protected function definition() {
-        GLOBAL $DB;
+        global $DB;
         $mform =& $this->_form;
         $mform->addElement('header', 'general', get_string('general', 'form'));
         $this->standard_intro_elements();
@@ -93,6 +93,7 @@ class mod_feedbackbox_mod_form extends moodleform_mod {
                 3 => get_string('turnusweek2', 'mod_feedbackbox'),
                 4 => get_string('turnusweek3', 'mod_feedbackbox')
             ]);
+        $mform->setDefault('turnus', 2);
         if ($this->get_instance() != 0 && $this->get_instance() != null && $this->get_instance() != '') {
             $entry = $DB->get_record('feedbackbox', ['id' => $this->get_instance()], '*', MUST_EXIST);
             $mform->addElement('static',
@@ -110,6 +111,8 @@ class mod_feedbackbox_mod_form extends moodleform_mod {
             'closedate',
             get_string('closedate', 'mod_feedbackbox'),
             ['optional' => false]);
+
+        $mform->setDefault('closedate', strtotime("+3 months", time()));
 
         $mform->addElement('checkbox',
             'notifystudents',

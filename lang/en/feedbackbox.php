@@ -215,8 +215,7 @@ value to its default **0** value. If you set **Min.** or **Max.** to values othe
 respondent does not comply with your requirements. Obviously you should make any requirements clear to the respondent either in the general instructions of
 your feedbackbox or in the text of relevant questions.';
 $string['misconfigured'] = 'Course is misconfigured';
-$string['missingquestion'] = 'Please answer required question ';
-$string['missingquestions'] = 'Please answer required questions: ';
+$string['missingquestion'] = 'Please answer required question.';
 $string['modulename'] = 'Feedback Box';
 $string['modulename_help'] = 'The feedback box module allows you to get feedback to your lessons from your students.<br/><br/><b> Credits </b> <br/> <br/>
 The feedback box is a cooperation project between the Potsdam University of Applied Sciences (FHP) and the Brandenburg Technical University (BTU) and was funded by the Ministry of Science, Research and Culture of the State of Brandenburg (MWFK).
@@ -534,8 +533,13 @@ $string['turnusweek2'] = 'Every two weeks';
 $string['turnusweek3'] = 'Every three weeks';
 $string['cminfodescription'] = '<b> Round {$a->id}: {$a->fromstr} to {$a->tostr} </b> - still {$a->daysleft} <br/> Your feedback on the course: in 3 steps, quickly and anonymously. ';
 $string['noturnusfound'] = 'No submission option found.';
+$string['noturnusfound_open'] = 'The first round starts on {$a}.';
+$string['noturnusfound_close'] = 'The last round has already been closed. No further entries are possible.';
 $string['cminfo_days'] = 'days';
 $string['cminfo_day'] = 'day';
+$string['cminfo_until_time'] = 'until today, {$a->date} at {$a->time} clock';
+$string['cminfodescription_time'] = '<b> Round {$a->id}: {$a->fromstr} to {$a->tostr} </b> - {$a->daysleft} <br/> Your feedback on the course: in 3 steps, quickly and anonymously. ';
+
 $string['feedbackboxadvice'] = '<b> Notes on the feedback box </b> </br> <ul>
 <li> Please note: The assessment is not primarily about the teacher, but about the entire course, including your fellow students and your own self-reflection. </li>
 <li> So that your feedback will be accepted, please formulate it respectfully and constructively. </li>
@@ -571,10 +575,22 @@ $string['report_sin_participants'] = 'Participants';
 $string['report_sin_thisisgood'] = 'What is going well';
 $string['report_sin_thisisbad'] = 'What could go better';
 $string['report_sin_current'] = 'current';
-$string['report_sin_old'] = 'old';
+$string['report_sin_old'] = 'completed';
 
 $string['notifystudents'] = 'Send reminder to students';
 $string['notifystudents_help'] = 'Students receive a reminder to provide feedback';
 $string['secret'] = 'Key to encrypt userids';
 $string['secret_help'] = 'Key to encrypt userid in backups. Please note that changing the key prevents old feedback box user data from being restored.';
 $string['replay_attack_detected'] = 'A user entry was used for an invalid response';
+
+$string['report_to_less_responses'] = 'The results won\'t appear until three or more people have submitted their feedback.';
+
+$string['question_section_info_head'] = 'Select applicable tags (keywords).';
+$string['question_section_info_body'] = 'Multiple selections possible. <br/> It is not necessary to select something in every category. <br/>
+The formulations of the tags are deliberately ambiguous. In the free text field that follows, you can <br/>
+you go into your selection more specifically and add what exactly you mean. <br/>
+Always bring it on!';
+$string['question_radio_info_head'] = 'Select an appropriate emoji.';
+$string['question_radio_info_body'] = 'Please note: The assessment is not primarily about the teacher, but about the entire <br/>
+Course - this also includes your fellow students and your own self-reflection.';
+$string['downloadcsv'] = "Export overview";

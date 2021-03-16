@@ -50,6 +50,7 @@ $feedbackbox = new feedbackbox(0, $feedbackbox, $course, $cm);
 // Add renderer and page objects to the feedbackbox object for display use.
 $feedbackbox->add_renderer($PAGE->get_renderer('mod_feedbackbox'));
 $feedbackbox->add_page(new completepage());
+$PAGE->requires->css('/mod/feedbackbox/style/styles.css');
 
 $feedbackbox->strfeedbackboxs = get_string("modulenameplural", "feedbackbox");
 $feedbackbox->strfeedbackbox = get_string("modulename", "feedbackbox");

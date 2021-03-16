@@ -28,8 +28,21 @@
     </div>
     {{#all}}
         <div class="viewallcontainer">
-            <h1>{{#str}}report_all_title, mod_feedbackbox{{/str}}</h1>
-            <h2>{{#str}}report_all_avgfeedback, mod_feedbackbox{{/str}}</h2>
+            <div class="left">
+                <h1>{{#str}}report_all_title, mod_feedbackbox{{/str}}</h1>
+                <h2>{{#str}}report_all_avgfeedback, mod_feedbackbox{{/str}}</h2>
+            </div>
+            <div class="right">
+                <a class="downloadcsv" href="{{downloadcsv}}" target="_blank">{{#str}}downloadcsv, mod_feedbackbox{{/str}}</a>
+            </div>
+            <div class="clearboth"></div>
+            {{#tolessresults}}
+                <div>
+                    <br/>
+                    {{#str}}report_to_less_responses, mod_feedbackbox{{/str}}<br/>
+                    <br/>
+                </div>
+            {{/tolessresults}}
             <div class="grid-container">
                 <div class="participants">
                     <div class="sectiontext">{{#str}}report_all_participantcount, mod_feedbackbox{{/str}}</div>
@@ -86,6 +99,13 @@
                         </div>
                         <div style="clear: both"></div>
                     </div>
+                    {{#tolessresults}}
+                        <div>
+                            <br/>
+                            {{#str}}report_to_less_responses, mod_feedbackbox{{/str}}<br/>
+                            <br/>
+                        </div>
+                    {{/tolessresults}}
                     <div class="sectiontext"></div>
                     <h3><b>{{#str}}report_howwell_title, mod_feedbackbox{{/str}}</b></h3>
                     <div class="canvas-graph-big">
@@ -118,6 +138,8 @@
                         {{/badmessages}}
                     </div>
                     <div class="sectiontext"></div>
+
+                    <a class="downloadcsv" href="{{downloadcsv}}" target="_blank">{{#str}}downloadcsv, mod_feedbackbox{{/str}}</a>
                 </div>
             </div>
             <div class="turnus">
@@ -153,8 +175,9 @@
         </div>
     {{/single}}
     <div style="display: none" id="feedbackboxicons">
-        {{#pix}}b/fb_4_hilfe, mod_feedbackbox, Icon{{/pix}}
-        {{#pix}}b/fb_3_okay, mod_feedbackbox, Icon{{/pix}}
+        {{#pix}}b/fb_1_hyper, mod_feedbackbox, Icon{{/pix}}
         {{#pix}}b/fb_2_laeuft, mod_feedbackbox, Icon{{/pix}}
-        {{#pix}}b/fb_1_hyper, mod_feedbackbox, Icon{{/pix}}</div>
+        {{#pix}}b/fb_3_okay, mod_feedbackbox, Icon{{/pix}}
+        {{#pix}}b/fb_4_hilfe, mod_feedbackbox, Icon{{/pix}}
+    </div>
 </div>

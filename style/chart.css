@@ -134,6 +134,25 @@
     clear: both;
 }
 
+.viewallcontainer .left {
+    float: left;
+}
+.viewallcontainer .right {
+    float: right;
+}
+
+.downloadcsv {
+    display: inline-block;
+    color: black;
+    text-decoration: none;
+    padding: 5px 15px 5px 15px;
+    background-color: rgba(255, 172, 37, 1);
+}
+.downloadcsv:hover {
+    text-decoration: none;
+    color: black;
+}
+
 .topthree div {
     margin: 5px;
 }

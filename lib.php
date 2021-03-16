@@ -64,7 +64,7 @@ function feedbackbox_supports($feature) {
  * @noinspection PhpUnused
  */
 function feedbackbox_cm_info_dynamic(cm_info $cm) {
-    GLOBAL $DB, $COURSE; // Required by include once.
+    global $DB, $COURSE; // Required by include once.
     if ($COURSE->id == $cm->course) { // Avoid performance issues.
         $cousem = get_coursemodule_from_instance('feedbackbox', $cm->instance, $cm->course);
         $feedbackbox = new feedbackbox(0,
@@ -74,17 +74,33 @@ function feedbackbox_cm_info_dynamic(cm_info $cm) {
         $zone = $feedbackbox->get_current_turnus();
         if ($zone !== false) {
             $calc = round(($zone->to - time()) / (60 * 60 * 24));
-            $zone->daysleft = $calc . ' ';
-            if ($calc > 1) {
-                // Plural.
-                $zone->daysleft .= get_string('cminfo_days', 'mod_feedbackbox');
+            if ($calc == 0) {
+                $zone->daysleft = get_string('cminfo_until_time',
+                    'mod_feedbackbox',
+                    (object) ['date' => date('d.m.Y', $zone->to), 'time' => date('H:i', $zone->to)]);
+                $cm->set_content(get_string('cminfodescription_time', 'mod_feedbackbox', $zone));
             } else {
-                // Singular.
-                $zone->daysleft .= get_string('cminfo_day', 'mod_feedbackbox');
+                $zone->daysleft = $calc . ' ';
+                if ($calc > 1) {
+                    // Plural.
+                    $zone->daysleft .= get_string('cminfo_days', 'mod_feedbackbox');
+                } else {
+                    // Singular.
+                    $zone->daysleft .= get_string('cminfo_day', 'mod_feedbackbox');
+                }
+                $cm->set_content(get_string('cminfodescription', 'mod_feedbackbox', $zone));
             }
-            $cm->set_content(get_string('cminfodescription', 'mod_feedbackbox', $zone));
         } else {
-            $cm->set_content(get_string('noturnusfound', 'mod_feedbackbox'));
+            if ($feedbackbox->opendate > time()) {
+                $cm->set_content(get_string('noturnusfound_open',
+                    'mod_feedbackbox',
+                    date('d.m.Y', $feedbackbox->opendate)));
+            } else if ($feedbackbox->closedate < time()) {
+                $cm->set_content(get_string('noturnusfound_close',
+                    'mod_feedbackbox'));
+            } else {
+                $cm->set_content(get_string('noturnusfound', 'mod_feedbackbox'));
+            }
         }
     }
 }
@@ -124,7 +140,7 @@ function feedbackbox_get_instance($feedbackboxid) {
  * @throws coding_exception
  */
 function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intro, $notifystudents) {
-    GLOBAL $DB;
+    global $DB;
 
     // Create survey.
     $survey = new stdClass();
@@ -162,10 +178,10 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
         1,
         0,
         1,
-        '<p><h4>Schritt 1/3:<br/><b>Hey, wie kommst du im Kurs zurecht?<span style="color: red;">*</span></b></h4></p>',
+        '<p><h4>Schritt 1/3:<br/><b>Hey, wie kommst du im Kurs zurecht?</b></h4></p>',
         'y',
         'n',
-        ['Hypergalaktisch gut!', 'Läuft wie geschmiert.', 'Es ist okay.', 'Hilfe - Ich komme gar nicht klar!']);
+        ['Hy&shy;per&shy;ga&shy;lak&shy;tisch gut!', 'Läuft wie ge&shy;schmiert.', 'Es ist okay.', 'Hilfe - Ich komme gar nicht klar!']);
     create_feedbackbox_question($surveyid, null, 99, 0, 0, 2, 'break', 'n', 'n');
     create_feedbackbox_question($surveyid,
         null,
@@ -311,16 +327,16 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
 
 /**
  *
- * @param int    $surveyid
+ * @param int $surveyid
  * @param string $name
- * @param int    $type
- * @param int    $length
- * @param int    $precise
- * @param int    $position
+ * @param int $type
+ * @param int $length
+ * @param int $precise
+ * @param int $position
  * @param string $content
  * @param string $required
  * @param string $deleted
- * @param array  $choices
+ * @param array $choices
  * @throws coding_exception
  * @throws dml_exception
  */
@@ -334,7 +350,7 @@ function create_feedbackbox_question($surveyid,
     $required,
     $deleted,
     $choices = []) {
-    GLOBAL $DB;
+    global $DB;
     $question = new stdClass();
     $question->surveyid = $surveyid;
     $question->name = $name;
@@ -534,7 +550,7 @@ function feedbackbox_user_complete($course, $user, $mod, $feedbackbox) {
  *
  * @param object $course
  * @param object $cm
- * @param object $context
+ * @param context $context
  * @param string $filearea
  * @param array  $args
  * @param bool   $forcedownload
@@ -547,15 +563,14 @@ function feedbackbox_user_complete($course, $user, $mod, $feedbackbox) {
  * @noinspection PhpUnused
  */
 function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
-    global $DB;
-
+    global $DB, $USER;
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
 
     require_course_login($course, true, $cm);
 
-    $fileareas = ['intro', 'info', 'question', 'sectionheading'];
+    $fileareas = ['intro', 'info', 'question', 'sectionheading', 'csv'];
     if (!in_array($filearea, $fileareas)) {
         return false;
     }
@@ -566,6 +581,13 @@ function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $force
         if (!$DB->record_exists('feedbackbox_question', ['id' => $componentid])) {
             return false;
         }
+    } else if ($filearea == 'csv' && has_capability('mod/feedbackbox:manage', $context, $USER)){
+        $course = $DB->get_record('course', ['id' => $cm->course]);
+        $feedbackbox = $DB->get_record('feedbackbox', ['id' => $cm->instance]);
+        $feedbackbox = new feedbackbox(0, $feedbackbox, $course, $cm);
+        $csv = $feedbackbox->generate_csv();
+        send_content_uncached($csv, $feedbackbox->name . '-' . $feedbackbox->id . '.csv');
+        // generate csv
     } else {
         if (!$DB->record_exists('feedbackbox_survey', ['id' => $componentid])) {
             return false;

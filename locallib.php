@@ -142,7 +142,7 @@ function feedbackbox_get_context($cmid) {
     }
 
     if (!$context = context_module::instance($cmid)) {
-        print_error('badcontext');
+        throw new \moodle_exception('badcontext', 'error');
     }
     return $context;
 }
@@ -212,7 +212,6 @@ function feedbackbox_delete_survey($sid, $feedbackboxid) {
  */
 function feedbackbox_delete_response($response, $feedbackbox = null) {
     global $DB;
-    $status = true;
     $cm = '';
     $rid = $response->id;
     // The feedbackbox_delete_survey function does not send the feedbackbox array.
@@ -225,7 +224,7 @@ function feedbackbox_delete_response($response, $feedbackbox = null) {
     $DB->delete_records('feedbackbox_resp_single', ['response_id' => $rid]);
     $DB->delete_records('feedbackbox_response_text', ['response_id' => $rid]);
 
-    $status = $status && $DB->delete_records('feedbackbox_response', ['id' => $rid]);
+    $status = $DB->delete_records('feedbackbox_response', ['id' => $rid]);
 
     if ($status && $cm) {
         // Update completion state if necessary.
@@ -377,26 +376,26 @@ function feedbackbox_get_standard_page_items($id = null, $a = null) {
 
     if ($id) {
         if (!$cm = get_coursemodule_from_id('feedbackbox', $id)) {
-            print_error('invalidcoursemodule');
+            throw new \moodle_exception('invalidcoursemodule', 'error');
         }
 
         if (!$course = $DB->get_record('course', ['id' => $cm->course])) {
-            print_error('coursemisconf');
+            throw new \moodle_exception('coursemisconf', 'error');
         }
 
         if (!$feedbackbox = $DB->get_record('feedbackbox', ['id' => $cm->instance])) {
-            print_error('invalidcoursemodule');
+            throw new \moodle_exception('invalidcoursemodule', 'error');
         }
 
     } else {
         if (!$feedbackbox = $DB->get_record('feedbackbox', ['id' => $a])) {
-            print_error('invalidcoursemodule');
+            throw new \moodle_exception('invalidcoursemodule', 'error');
         }
         if (!$course = $DB->get_record('course', ['id' => $feedbackbox->course])) {
-            print_error('coursemisconf');
+            throw new \moodle_exception('coursemisconf', 'error');
         }
         if (!$cm = get_coursemodule_from_instance('feedbackbox', $feedbackbox->id, $course->id)) {
-            print_error('invalidcoursemodule');
+            throw new \moodle_exception('invalidcoursemodule', 'error');
         }
     }
 

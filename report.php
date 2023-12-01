@@ -28,19 +28,19 @@ if ($instance === false) {
     if (!empty($SESSION->instance)) {
         $instance = $SESSION->instance;
     } else {
-        print_error('requiredparameter', 'feedbackbox');
+        throw new \moodle_exception('requiredparameter', 'error');
     }
 }
 $SESSION->instance = $instance;
 
 if (!$feedbackbox = $DB->get_record('feedbackbox', ['id' => $instance])) {
-    print_error('incorrectfeedbackbox', 'feedbackbox');
+    throw new \moodle_exception('incorrectfeedbackbox', 'error');
 }
 if (!$course = $DB->get_record('course', ['id' => $feedbackbox->course])) {
-    print_error('coursemisconf');
+    throw new \moodle_exception('coursemisconf', 'error');
 }
 if (!$cm = get_coursemodule_from_instance('feedbackbox', $feedbackbox->id, $course->id)) {
-    print_error('invalidcoursemodule');
+    throw new \moodle_exception('invalidcoursemodule', 'error');
 }
 
 require_course_login($course, true, $cm);
@@ -50,9 +50,7 @@ $feedbackbox = new feedbackbox(0, $feedbackbox, $course, $cm);
 $context = context_module::instance($cm->id);
 if (!has_capability('mod/feedbackbox:manage', $context)) {
     // Should never happen, unless called directly by a snoop...
-    print_error('nopermissions',
-        'moodle',
-        $CFG->wwwroot . '/mod/feedbackbox/view.php?id=' . $cm->id,
+    throw new \moodle_exception('nopermissions', 'moodle', $CFG->wwwroot . '/mod/feedbackbox/view.php?id=' . $cm->id,
         get_string('viewallresponses', 'mod_feedbackbox'));
 }
 
@@ -91,13 +89,13 @@ if ($action == 'single') {
     $data->single = true;
     $PAGE->requires->js_call_amd('mod_feedbackbox/chartview',
         'init',
-        [$feedbackbox->id, 'single', $turnus]);
+        [$feedbackbox->id, 'single', $turnus, get_string('round', 'mod_feedbackbox')]);
     $navbarelements[1]->active = true;
 } else {
     $data = $feedbackbox->get_feedback_responses();
     $PAGE->requires->js_call_amd('mod_feedbackbox/chartview',
         'init',
-        [$feedbackbox->id, 'all', $data->totalparticipants]);
+        [$feedbackbox->id, 'all', $data->totalparticipants, get_string('round', 'mod_feedbackbox')]);
     $data->all = true;
     $navbarelements[0]->active = true;
 }

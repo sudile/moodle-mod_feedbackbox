@@ -64,13 +64,13 @@ class mod_feedbackbox_external extends external_api {
      * @noinspection PhpUnused
      */
     public static function get_chartdata_single($feedbackboxid, $turnus) {
-        GLOBAl $DB, $USER;
+        global $DB, $USER;
         $result = new stdClass();
         if (!$cm = get_coursemodule_from_instance('feedbackbox', $feedbackboxid)) {
-            print_error('invalidcoursemodule');
+            throw new \moodle_exception('invalidcoursemodule', 'error');
         }
         if (!has_capability('mod/feedbackbox:manage', context_module::instance($cm->id), $USER->id)) {
-            print_error('nopermissions');
+            throw new \moodle_exception('nopermissions', 'error');
         }
         $course = $DB->get_record("course", ["id" => $cm->course]);
         $feedbackbox = $DB->get_record('feedbackbox', ['id' => $feedbackboxid]);
@@ -120,13 +120,13 @@ class mod_feedbackbox_external extends external_api {
      * @noinspection PhpUnused
      */
     public static function get_chartdata_multiple($feedbackboxid) {
-        GLOBAl $DB, $USER;
+        global $DB, $USER;
         $result = new stdClass();
         if (!$cm = get_coursemodule_from_instance('feedbackbox', $feedbackboxid)) {
-            print_error('invalidcoursemodule');
+            throw new \moodle_exception('invalidcoursemodule', 'error');
         }
         if (!has_capability('mod/feedbackbox:manage', context_module::instance($cm->id), $USER->id)) {
-            print_error('nopermissions');
+            throw new \moodle_exception('nopermissions', 'error');
         }
         $course = $DB->get_record("course", ["id" => $cm->course]);
         $feedbackbox = $DB->get_record('feedbackbox', ['id' => $feedbackboxid]);

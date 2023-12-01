@@ -296,7 +296,7 @@ abstract class responsetype {
         }
 
         if (is_array($feedbackboxids)) {
-            list($qsql, $params) = $DB->get_in_or_equal($feedbackboxids);
+            [$qsql, $params] = $DB->get_in_or_equal($feedbackboxids);
         } else {
             $qsql = ' = ? ';
             $params = [$feedbackboxids];
@@ -374,8 +374,8 @@ abstract class responsetype {
      * @author: Guy Thomas
      */
     protected function user_fields_sql() {
-        $userfieldsarr = get_all_user_name_fields();
-        $userfieldsarr = array_merge($userfieldsarr, ['username', 'department', 'institution']);
+        $userfieldsarr = array_merge(array_values(\core_user\fields::get_name_fields()),
+            ['username', 'department', 'institution']);
         $userfields = '';
         foreach ($userfieldsarr as $field) {
             $userfields .= $userfields === '' ? '' : ', ';

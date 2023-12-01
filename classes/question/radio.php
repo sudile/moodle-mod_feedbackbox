@@ -27,6 +27,7 @@ namespace mod_feedbackbox\question;
 use coding_exception;
 use mod_feedbackbox\question\choice\choice;
 use mod_feedbackbox\responsetype\response\response;
+use mod_feedbackbox\translate;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -102,13 +103,13 @@ class radio extends question {
     /**
      * Return the context tags for the check question template.
      *
-     * @param response $response
-     * @param array    $dependants Array of all questions/choices depending on this question.
+     * @param response $formdata
+     * @param array    $descendantsdata Array of all questions/choices depending on this question.
      * @param boolean  $blankfeedbackbox
      * @return object The check question context tags.
      * @throws coding_exception
      */
-    protected function question_survey_display($response, $dependants = [], $blankfeedbackbox = false) {
+    protected function question_survey_display($formdata, $descendantsdata = [], $blankfeedbackbox = false) {
         global $idcounter;  // To make sure all radio buttons have unique ids. // JR 20 NOV 2007.
 
         $otherempty = false;
@@ -129,7 +130,7 @@ class radio extends question {
                 $radio->name = 'q' . $this->id;
                 $radio->id = $htmlid;
                 $radio->value = $id;
-                if (isset($response->answers[$this->id][$id])) {
+                if (isset($formdata->answers[$this->id][$id])) {
                     $radio->checked = true;
                     $ischecked = true;
                 }
@@ -139,20 +140,21 @@ class radio extends question {
                     $value = ' (' . $choice->value . ') ';
                 }
                 $contents = feedbackbox_choice_values($choice->content);
-                $radio->label = $value . format_text($contents->text,
+                // Todo: send this trough the translator!
+                $radio->label = $value . format_text(translate::patch($contents->text),
                         FORMAT_HTML,
                         ['noclean' => true]) . $contents->image;
 
                 $radio->piximage = $icons[$counter++];
             } else {             // Radio button with associated !other text field.
                 $othertext = $choice->other_choice_display();
-                $odata = isset($response->answers[$this->id][$id]) ? $response->answers[$this->id][$id]->value : '';
+                $odata = isset($formdata->answers[$this->id][$id]) ? $formdata->answers[$this->id][$id]->value : '';
                 $htmlid = 'auto-rb' . sprintf('%04d', ++$idcounter);
 
                 $radio->name = 'q' . $this->id;
                 $radio->id = $htmlid;
                 $radio->value = $id;
-                if (isset($response->answers[$this->id][$id]) || !empty($odata)) {
+                if (isset($formdata->answers[$this->id][$id]) || !empty($odata)) {
                     $radio->checked = true;
                     $ischecked = true;
                 }
@@ -200,10 +202,10 @@ class radio extends question {
     /**
      * Return the context tags for the radio response template.
      *
-     * @param response $response
+     * @param response $data
      * @return object The radio question response context tags.
      */
-    protected function response_survey_display($response) {
+    protected function response_survey_display($data) {
         static $uniquetag = 0;  // To make sure all radios have unique names.
 
         $resptags = new stdClass();
@@ -211,8 +213,8 @@ class radio extends question {
 
         $qdata = new stdClass();
         $horizontal = $this->length;
-        if (isset($response->answers[$this->id])) {
-            $answer = reset($response->answers[$this->id]);
+        if (isset($data->answers[$this->id])) {
+            $answer = reset($data->answers[$this->id]);
             $checked = $answer->choiceid;
         } else {
             $checked = null;

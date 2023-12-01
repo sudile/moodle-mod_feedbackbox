@@ -63,12 +63,12 @@ class pagebreak extends question {
     }
 
     /**
-     * @param object $data
+     * @param object $formdata
      * @param        $descendantsdata
      * @param bool   $blankfeedbackbox
      * @return string
      */
-    protected function question_survey_display($data, $descendantsdata, $blankfeedbackbox = false) {
+    protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox = false) {
         return '';
     }
 

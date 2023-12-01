@@ -217,7 +217,7 @@ class single extends responsetype {
         $rsql = '';
         $params = [$this->question->id];
         if (!empty($rids)) {
-            list($rsql, $rparams) = $DB->get_in_or_equal($rids);
+            [$rsql, $rparams] = $DB->get_in_or_equal($rids);
             $params = array_merge($params, $rparams);
             $rsql = ' AND response_id ' . $rsql;
         }

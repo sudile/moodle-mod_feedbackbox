@@ -27,6 +27,7 @@ namespace mod_feedbackbox\question;
 use coding_exception;
 use mod_feedbackbox\responsetype\answer\answer;
 use mod_feedbackbox\responsetype\response\response;
+use mod_feedbackbox\translate;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -143,20 +144,19 @@ class check extends question {
     /**
      * Return the context tags for the check question template.
      *
-     * @param response $response
-     * @param array    $dependants Array of all questions/choices depending on this question.
+     * @param response $formdata
+     * @param array    $descendantsdata Array of all questions/choices depending on this question.
      * @param boolean  $blankfeedbackbox
      * @return object The check question context tags.
      * @throws coding_exception
      */
-    protected function question_survey_display($response, $dependants, $blankfeedbackbox = false) {
+    protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox = false) {
         $otherempty = false;
-        if (!empty($response)) {
+        if (!empty($formdata)) {
             // Verify that number of checked boxes (nbboxes) is within set limits (length = min; precision = max).
-            if (!empty($response->answers[$this->id])) {
-                $otherempty = false;
-                $nbboxes = count($response->answers[$this->id]);
-                foreach ($response->answers[$this->id] as $answer) {
+            if (!empty($formdata->answers[$this->id])) {
+                $nbboxes = count($formdata->answers[$this->id]);
+                foreach ($formdata->answers[$this->id] as $answer) {
                     $choice = $this->choices[$answer->choiceid];
                     if ($choice->is_other_choice()) {
                         $otherempty = empty($answer->value);
@@ -199,20 +199,21 @@ class check extends question {
             $checkbox = new stdClass();
             $contents = feedbackbox_choice_values($choice->content);
             $checked = false;
-            if (!empty($response->answers[$this->id])) {
-                $checked = isset($response->answers[$this->id][$id]);
+            if (!empty($formdata->answers[$this->id])) {
+                $checked = isset($formdata->answers[$this->id][$id]);
             }
             $checkbox->name = 'q' . $this->id . '[' . $id . ']';
             $checkbox->value = $id;
             $checkbox->id = 'checkbox_' . $id;
-            $checkbox->label = format_text($contents->text, FORMAT_HTML, ['noclean' => true]) . $contents->image;
+            $text = translate::patch($contents->text);
+            $checkbox->label = format_text($text, FORMAT_HTML, ['noclean' => true]) . $contents->image;
             if ($checked) {
                 $checkbox->checked = $checked;
             }
             if ($choice->is_other_choice()) {
                 $checkbox->oname = 'q' . $this->id . '[' . $choice->other_choice_name() . ']';
-                $checkbox->ovalue = (isset($response->answers[$this->id][$id]) && !empty($response->answers[$this->id][$id]) ?
-                    stripslashes($response->answers[$this->id][$id]->value) : '');
+                $checkbox->ovalue = (isset($formdata->answers[$this->id][$id]) && !empty($formdata->answers[$this->id][$id]) ?
+                    stripslashes($formdata->answers[$this->id][$id]->value) : '');
                 $checkbox->label = format_text($choice->other_choice_display() . '', FORMAT_HTML, ['noclean' => true]);
             }
             $choicetags->qelements[] = (object) ['choice' => $checkbox];
@@ -226,17 +227,17 @@ class check extends question {
     /**
      * Return the context tags for the check response template.
      *
-     * @param response $response
+     * @param response $data
      * @return object The check question response context tags.
      */
-    protected function response_survey_display($response) {
+    protected function response_survey_display($data) {
         static $uniquetag = 0;  // To make sure all radios have unique names.
 
         $resptags = new stdClass();
         $resptags->choices = [];
 
-        if (!isset($response->answers[$this->id])) {
-            $response->answers[$this->id][] = new answer();
+        if (!isset($data->answers[$this->id])) {
+            $data->answers[$this->id][] = new answer();
         }
 
         foreach ($this->choices as $id => $choice) {
@@ -244,7 +245,7 @@ class check extends question {
             if (!$choice->is_other_choice()) {
                 $contents = feedbackbox_choice_values($choice->content);
                 $choice->content = $contents->text . $contents->image;
-                if (isset($response->answers[$this->id][$id])) {
+                if (isset($data->answers[$this->id][$id])) {
                     $chobj->selected = 1;
                 }
                 $chobj->name = $id . $uniquetag++;
@@ -253,8 +254,8 @@ class check extends question {
                     ['noclean' => true]));
             } else {
                 $othertext = $choice->other_choice_display();
-                if (isset($response->answers[$this->id][$id])) {
-                    $oresp = $response->answers[$this->id][$id]->value;
+                if (isset($data->answers[$this->id][$id])) {
+                    $oresp = $data->answers[$this->id][$id]->value;
                     $chobj->selected = 1;
                     $chobj->othercontent = (!empty($oresp) ? htmlspecialchars($oresp) : '&nbsp;');
                 }

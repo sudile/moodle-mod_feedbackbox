@@ -23,9 +23,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-/** @noinspection PhpIncludeInspection */
 require_once($CFG->dirroot . '/mod/feedbackbox/backup/moodle2/backup_feedbackbox_stepslib.php');
-/** @noinspection PhpIncludeInspection */
 require_once($CFG->dirroot . '/mod/feedbackbox/backup/moodle2/backup_feedbackbox_settingslib.php');
 
 /**

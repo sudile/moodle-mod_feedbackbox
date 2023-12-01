@@ -22,13 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
-    function ($, ajax, Chart) {
+    function($, ajax, Chart) {
         var images = [];
+        var roundstr = '';
 
         function getSVG(src) {
             var request = new XMLHttpRequest();
             request.open('GET', src, false);
-            request.onload = function () {
+            request.onload = function() {
                 var parser = new DOMParser();
                 var result = parser.parseFromString(request.responseText, 'text/xml');
                 var inlineSVG = result.getElementsByTagName("svg")[0];
@@ -38,7 +39,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                 var img64 = 'data:image/svg+xml;base64,' + svg64;
                 var image = new Image();
                 image.src = img64;
-                image.onload = function () {
+                image.onload = function() {
                     var canvas = document.createElement("canvas");
                     canvas.width = this.width;
                     canvas.height = this.height;
@@ -53,8 +54,9 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
         }
 
         var obj = {
-            init: function (feedbackboxid, action, mixedvalue) {
-                $('#feedbackboxicons').children().each(function () {
+            init: function(feedbackboxid, action, mixedvalue, roundstring) {
+                roundstr = roundstring;
+                $('#feedbackboxicons').children().each(function() {
                     getSVG($(this).attr('src'));
                 });
                 if (action === 'single') {
@@ -64,7 +66,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                             args: {feedbackboxid: feedbackboxid, turnus: mixedvalue}
                         }
                     ]);
-                    promises[0].done(function (response) {
+                    promises[0].done(function(response) {
                         let ctxc = $('#studchart');
                         new Chart(ctxc, {
                             type: 'bar',
@@ -127,15 +129,15 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                     let promises = ajax.call([
                         {methodname: 'mod_feedbackbox_chartdata_multiple', args: {feedbackboxid: feedbackboxid}}
                     ]);
-                    promises[0].done(function (response) {
+                    promises[0].done(function(response) {
                         let datarounds = [];
                         let dataparticipants = [];
                         let datarating = [];
                         let counter = 1;
-                        response.data.forEach(function (entry) {
+                        response.data.forEach(function(entry) {
                             dataparticipants.push(entry.participants);
                             datarating.push(entry.rating);
-                            datarounds.push('Runde ' + (counter++));
+                            datarounds.push(roundstr + ' ' + (counter++)); // Todo: fix entry (we need lang strign)
                         });
                         let ctxp = $('#participants');
                         let myChartp = new Chart(ctxp, {
@@ -160,7 +162,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                                         ticks: {
                                             suggestedMin: 0,
                                             suggestedMax: mixedvalue,
-                                            callback: function (value) {
+                                            callback: function(value) {
                                                 if (value % 1 === 0) {
                                                     return value;
                                                 }
@@ -227,7 +229,7 @@ define(['jquery', 'core/ajax', 'mod_feedbackbox/chart'],
                                             beginAtZero: false,
                                             suggestedMin: 1,
                                             suggestedMax: 4,
-                                            callback: function (value) {
+                                            callback: function(value) {
                                                 if (value % 1 === 0) {
                                                     return value;
                                                 }

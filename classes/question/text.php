@@ -91,12 +91,12 @@ class text extends question {
     /**
      * Return the context tags for the check question template.
      *
-     * @param response                                        $response
+     * @param response                                        $formdata
      * @param                                                 $descendantsdata
      * @param boolean                                         $blankfeedbackbox
      * @return object The check question context tags.
      */
-    protected function question_survey_display($response, $descendantsdata, $blankfeedbackbox = false) {
+    protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox = false) {
         $questiontags = new stdClass();
         $questiontags->qelements = new stdClass();
         $choice = new stdClass();
@@ -106,7 +106,7 @@ class text extends question {
         if ($this->precise > 0) {
             $choice->maxlength = 10000;
         }
-        $choice->value = (isset($response->answers[$this->id][0]) ? stripslashes($response->answers[$this->id][0]->value) : '');
+        $choice->value = (isset($formdata->answers[$this->id][0]) ? stripslashes($formdata->answers[$this->id][0]->value) : '');
         $choice->id = self::qtypename($this->type_id) . $this->id;
         $questiontags->qelements->choice = $choice;
         return $questiontags;
@@ -115,13 +115,13 @@ class text extends question {
     /**
      * Return the context tags for the text response template.
      *
-     * @param $response
+     * @param $data
      * @return object The radio question response context tags.
      */
-    protected function response_survey_display($response) {
+    protected function response_survey_display($data) {
         $resptags = new stdClass();
-        if (isset($response->answers[$this->id])) {
-            $answer = reset($response->answers[$this->id]);
+        if (isset($data->answers[$this->id])) {
+            $answer = reset($data->answers[$this->id]);
             $resptags->content = format_text($answer->value, FORMAT_HTML);
         }
         return $resptags;

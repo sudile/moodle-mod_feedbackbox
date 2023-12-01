@@ -30,7 +30,7 @@ $id = optional_param('id', null, PARAM_INT);    // Course Module ID.
 $a = optional_param('a', null, PARAM_INT);      // Feedbackbox ID.
 
 $sid = optional_param('sid', null, PARAM_INT);  // Survey id.
-list($cm, $course, $feedbackbox) = feedbackbox_get_standard_page_items($id, $a);
+[$cm, $course, $feedbackbox] = feedbackbox_get_standard_page_items($id, $a);
 
 // Check login and get context.
 require_course_login($course, true, $cm);

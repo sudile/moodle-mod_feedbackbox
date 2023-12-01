@@ -60,7 +60,7 @@ class provider implements
      * @param collection $collection The collection to add metadata to.
      * @return  collection  The array of metadata
      */
-    public static function get_metadata(collection $collection) : collection {
+    public static function get_metadata(collection $collection): collection {
 
         // Add all of the relevant tables and fields to the collection.
         $collection->add_database_table('feedbackbox_response',
@@ -105,7 +105,7 @@ class provider implements
      * @param int $userid The user to search.
      * @return  contextlist   $contextlist  The list of contexts used in this plugin.
      */
-    public static function get_contexts_for_userid(int $userid) : contextlist {
+    public static function get_contexts_for_userid(int $userid): contextlist {
         $contextlist = new contextlist();
 
         $sql = "SELECT c.id
@@ -170,7 +170,7 @@ class provider implements
 
         $user = $contextlist->get_user();
 
-        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+        [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
 
         $sql = "SELECT cm.id AS cmid,
                    q.id AS qid, q.course AS qcourse,
@@ -328,7 +328,7 @@ class provider implements
             return;
         }
 
-        list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        [$userinsql, $userinparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
         $params = array_merge(['feedbackboxid' => $feedbackbox->id], $userinparams);
         $select = 'feedbackboxid = :feedbackboxid AND userid ' . $userinsql;
         if ($responses = $DB->get_recordset_select('feedbackbox_response', $select, $params)) {

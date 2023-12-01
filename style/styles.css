@@ -5,15 +5,12 @@
 }
 
 .qn-question {
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-bottom: 0.1em;
-    padding-top: 0.1em;
+    padding: 0.1em 5px;
     background-color: transparent;
 }
 
 .unselected {
-    color: gray;
+    color: rgb(128, 128, 128);
 }
 
 .qn-info {
@@ -128,14 +125,11 @@
 .feedbackratecheckbox + label {
     vertical-align: top;
     cursor: pointer;
-    padding-left: 9px;
-    padding-right: 9px;
     background-color: unset;
     border-color: black;
     border-style: solid;
     border-width: 1px;
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding: 4px 9px;
 }
 
 .feedbackratecheckbox:checked + label {

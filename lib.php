@@ -78,7 +78,8 @@ function feedbackbox_cm_info_dynamic(cm_info $cm) {
                 $zone->daysleft = get_string('cminfo_until_time',
                     'mod_feedbackbox',
                     (object) ['date' => date('d.m.Y', $zone->to), 'time' => date('H:i', $zone->to)]);
-                $cm->set_content(get_string('cminfodescription_time', 'mod_feedbackbox', $zone));
+                $content = get_string('cminfodescription_time', 'mod_feedbackbox', $zone);
+
             } else {
                 $zone->daysleft = $calc . ' ';
                 if ($calc > 1) {
@@ -88,20 +89,33 @@ function feedbackbox_cm_info_dynamic(cm_info $cm) {
                     // Singular.
                     $zone->daysleft .= get_string('cminfo_day', 'mod_feedbackbox');
                 }
-                $cm->set_content(get_string('cminfodescription', 'mod_feedbackbox', $zone));
+                $content = get_string('cminfodescription', 'mod_feedbackbox', $zone);
             }
         } else {
             if ($feedbackbox->opendate > time()) {
-                $cm->set_content(get_string('noturnusfound_open',
+                $content = get_string('noturnusfound_open',
                     'mod_feedbackbox',
-                    date('d.m.Y', $feedbackbox->opendate)));
+                    date('d.m.Y', $feedbackbox->opendate));
             } else if ($feedbackbox->closedate < time()) {
-                $cm->set_content(get_string('noturnusfound_close',
-                    'mod_feedbackbox'));
+                $content = get_string('noturnusfound_close',
+                    'mod_feedbackbox');
             } else {
-                $cm->set_content(get_string('noturnusfound', 'mod_feedbackbox'));
+                $content = get_string('noturnusfound', 'mod_feedbackbox');
             }
         }
+        if ($cm->showdescription != 0) {
+            $summary = file_rewrite_pluginfile_urls($feedbackbox->intro,
+                'pluginfile.php',
+                $cm->context->id,
+                'mod_feedbackbox',
+                'intro',
+                null);
+            // Not sure why this is wanted but format_text throws an error.
+            $text = '<FORMAT_STRING>' . $summary . '</FORMAT_STRING><hr>';
+            $content = $text . $content;
+        }
+
+        $cm->set_content($content);
     }
 }
 
@@ -171,7 +185,6 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
     $radio = 4;
     $check = 5;
     $section = 100;
-
     create_feedbackbox_question($surveyid,
         null,
         $radio,
@@ -327,16 +340,16 @@ function feedbackbox_add_template_object($courseid, $turnus, $start, $end, $intr
 
 /**
  *
- * @param int $surveyid
+ * @param int    $surveyid
  * @param string $name
- * @param int $type
- * @param int $length
- * @param int $precise
- * @param int $position
+ * @param int    $type
+ * @param int    $length
+ * @param int    $precise
+ * @param int    $position
  * @param string $content
  * @param string $required
  * @param string $deleted
- * @param array $choices
+ * @param array  $choices
  * @throws coding_exception
  * @throws dml_exception
  */
@@ -548,12 +561,12 @@ function feedbackbox_user_complete($course, $user, $mod, $feedbackbox) {
 /**
  * Serves the feedbackbox attachments. Implements needed access control ;-)
  *
- * @param object $course
- * @param object $cm
+ * @param object  $course
+ * @param object  $cm
  * @param context $context
- * @param string $filearea
- * @param array  $args
- * @param bool   $forcedownload
+ * @param string  $filearea
+ * @param array   $args
+ * @param bool    $forcedownload
  * @return bool false if file not found, does not return if found - justsend the file
  *
  * $forcedownload is unused, but API requires it. Suppress PHPMD warning.
@@ -581,7 +594,7 @@ function feedbackbox_pluginfile($course, $cm, $context, $filearea, $args, $force
         if (!$DB->record_exists('feedbackbox_question', ['id' => $componentid])) {
             return false;
         }
-    } else if ($filearea == 'csv' && has_capability('mod/feedbackbox:manage', $context, $USER)){
+    } else if ($filearea == 'csv' && has_capability('mod/feedbackbox:manage', $context, $USER)) {
         $course = $DB->get_record('course', ['id' => $cm->course]);
         $feedbackbox = $DB->get_record('feedbackbox', ['id' => $cm->instance]);
         $feedbackbox = new feedbackbox(0, $feedbackbox, $course, $cm);

@@ -21,6 +21,7 @@ use context;
 use dml_exception;
 use html_writer;
 use mod_feedbackbox\responsetype\response\response;
+use mod_feedbackbox\translate;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -84,6 +85,8 @@ abstract class question {
     public $name = '';
     /** @var string $type The name of the question type. */
     public $type = '';
+    /** @var int $type_id Defines the type id of the question */
+    public $type_id = 0;
     /** @var array $choices Array holding any choices for this question. */
     public $choices = [];
     /** @var array $dependencies Array holding any dependencies for this question. */
@@ -108,13 +111,16 @@ abstract class question {
     private $context = null;
 
     private $qid = 0;
+
+    public $responsetype = null;
+
     /**
      * The class constructor
      *
-     * @param int   $id
-     * @param null  $question
-     * @param context  $context
-     * @param array $params
+     * @param int     $id
+     * @param null    $question
+     * @param context $context
+     * @param array   $params
      * @throws dml_exception
      */
     public function __construct($id = 0, $question = null, $context = null, $params = []) {
@@ -587,7 +593,8 @@ abstract class question {
             $pagetags->label = (object) ['for' => 'edit-q' . $this->id];
         }
         $options = ['noclean' => true, 'para' => false, 'filter' => true, 'context' => $this->context, 'overflowdiv' => true];
-        $content = format_text(file_rewrite_pluginfile_urls($this->content,
+        $content = translate::patch($this->content);
+        $content = format_text(file_rewrite_pluginfile_urls($content,
             'pluginfile.php',
             $this->context->id,
             'mod_feedbackbox',
@@ -596,7 +603,6 @@ abstract class question {
             FORMAT_HTML,
             $options);
         $pagetags->qcontent = $content;
-
         return $pagetags;
     }
 

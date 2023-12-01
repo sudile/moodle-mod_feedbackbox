@@ -25,8 +25,6 @@
 namespace mod_feedbackbox\question;
 
 use dml_exception;
-use feedbackbox;
-use mod_feedbackbox\output\reportpage;
 use mod_feedbackbox\responsetype\response\response;
 
 defined('MOODLE_INTERNAL') || die();
@@ -78,16 +76,16 @@ class sectiontext extends question {
     /**
      * Return the context tags for the check question template.
      *
-     * @param response                                        $response
+     * @param response                                        $formdata
      * @param                                                 $descendantsdata
      * @param boolean                                         $blankfeedbackbox
      * @return object|string
      * @throws dml_exception
      */
-    protected function question_survey_display($response, $descendantsdata, $blankfeedbackbox = false) {
+    protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox = false) {
         global $DB, $CFG, $PAGE;
         // If !isset then normal behavior as sectiontext question.
-        if (!isset($response->feedbackboxid)) {
+        if (!isset($formdata->feedbackboxid)) {
             return '';
         }
         return '';

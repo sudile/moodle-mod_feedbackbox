@@ -185,7 +185,7 @@ class text extends responsetype {
         $params = [];
         $rsql = '';
         if (!empty($rids)) {
-            list($rsql, $params) = $DB->get_in_or_equal($rids);
+            [$rsql, $params] = $DB->get_in_or_equal($rids);
             $rsql = ' AND response_id ' . $rsql;
         }
 

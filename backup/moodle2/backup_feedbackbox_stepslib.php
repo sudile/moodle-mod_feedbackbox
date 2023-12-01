@@ -21,7 +21,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_feedbackbox\backup\hashed_backup_nested_element;
 use mod_feedbackbox\feedbackbox;
 
 defined('MOODLE_INTERNAL') || die();
@@ -41,7 +40,7 @@ class backup_feedbackbox_activity_structure_step extends backup_activity_structu
      * @throws base_step_exception
      */
     protected function define_structure() {
-        GLOBAL $DB;
+        global $DB;
         // To know if we are including userinfo.
         $userinfo = $this->get_setting_value('userinfo');
 

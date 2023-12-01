@@ -134,7 +134,6 @@ class restore_feedbackbox_activity_structure_step extends restore_activity_struc
 
         $data = (object) $data;
 
-        /** @noinspection PhpIncludeInspection */
         require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
 
         // Replace the = separator with :: separator in quest_choice content.

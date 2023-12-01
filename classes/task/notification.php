@@ -73,6 +73,10 @@ class notification extends scheduled_task {
             $teachers = [];
             $course = $DB->get_record('course', ['id' => $box->course]);
             $cm = get_coursemodule_from_instance('feedbackbox', $box->id);
+            if ($cm->deletioninprogress != 0) {
+                // We will skip course modules which are in deletion progress to avoid notifications for users.
+                continue;
+            }
             // Get zones
             $instance = new feedbackbox($box->id, $box, $course, $cm);
             $courseusers = enrol_get_course_users($box->course, true);

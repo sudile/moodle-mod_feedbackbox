@@ -72,12 +72,12 @@ class essay extends text {
     }
 
     /**
-     * @param response                                        $response
+     * @param response                                        $formdata
      * @param                                                 $descendantsdata
      * @param bool                                            $blankfeedbackbox
      * @return object|string
      */
-    protected function question_survey_display($response, $descendantsdata, $blankfeedbackbox = false) {
+    protected function question_survey_display($formdata, $descendantsdata, $blankfeedbackbox = false) {
         $output = '';
 
         // Essay.
@@ -94,8 +94,8 @@ class essay extends text {
             $rows = $this->precise > 1 ? $this->precise : $this->length;
         }
         $name = 'q' . $this->id;
-        if (isset($response->answers[$this->id][0])) {
-            $value = $response->answers[$this->id][0]->value;
+        if (isset($formdata->answers[$this->id][0])) {
+            $value = $formdata->answers[$this->id][0]->value;
         } else {
             $value = '';
         }
@@ -105,20 +105,9 @@ class essay extends text {
 
         // If the position equals to 9 its a good text request.
         if ($this->position == 9) {
-            $output .= '<div class="infotext"><p><b>Erläutere deine Auswahl an Tags im Freitextfeld.</b><br/>
-Dieser Teil des Feedbacks ist optional.<br/>
-Es muss keine Doktorarbeit werden, aber versuche deine Auswahl zu begründen, damit dein<br/>
-Feedback richtig verstanden wird. Damit dieses auch gern angenommen wird, formuliere den<br/>
-Text bitte respektvoll und konstruktiv. Und vergiss nicht: Jede*r freut sich über lobende Worte!
-</p></div><br/>';
+            $output .= get_string('essay_good', 'mod_feedbackbox');
         } else {
-            $output .= '<div class="infotext"><p><b>Erläutere deine Auswahl an Tags im Freitextfeld.</b><br/>
-Dieser Teil des Feedbacks ist optional.<br/>
-Es muss keine Doktorarbeit werden, aber versuche deine Auswahl zu begründen, damit dein<br/>
-Feedback richtig verstanden wird. Damit dieses auch gern angenommen wird, formuliere den<br/>
-Text bitte respektvoll und konstruktiv. Hast du konkrete Lösungsvorschläge oder Alternativen?</br>
-Immer her damit!
-</p></div><br/>';
+            $output .= get_string('essay_bad', 'mod_feedbackbox');
         }
 
         $output .= $texteditor;
@@ -127,12 +116,12 @@ Immer her damit!
     }
 
     /**
-     * @param response $response
+     * @param response $data
      * @return object|string
      */
-    protected function response_survey_display($response) {
-        if (isset($response->answers[$this->id])) {
-            $answer = reset($response->answers[$this->id]);
+    protected function response_survey_display($data) {
+        if (isset($data->answers[$this->id])) {
+            $answer = reset($data->answers[$this->id]);
             $answer = $answer->value;
         } else {
             $answer = '&nbsp;';

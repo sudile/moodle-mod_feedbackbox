@@ -58,7 +58,7 @@ class multiple extends single {
         $answers = [];
         if (isset($responsedata->{'q' . $question->id})) {
             foreach ($responsedata->{'q' . $question->id} as $cid => $cvalue) {
-                $cid = clean_param($cid, PARAM_CLEAN);
+                $cid = clean_param($cid, PARAM_INT);
                 if (isset($question->choices[$cid])) {
                     $record = new stdClass();
                     $record->responseid = $responsedata->rid;

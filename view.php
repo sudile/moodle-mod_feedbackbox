@@ -30,7 +30,7 @@ $a = optional_param('a', null, PARAM_INT);      // Or feedbackbox ID.
 
 $sid = optional_param('sid', null, PARAM_INT);  // Survey id.
 
-list($cm, $course, $feedbackbox) = feedbackbox_get_standard_page_items($id, $a);
+[$cm, $course, $feedbackbox] = feedbackbox_get_standard_page_items($id, $a);
 
 // Check login and get context.
 require_course_login($course, true, $cm);
@@ -58,11 +58,6 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->requires->css('/mod/feedbackbox/style/styles.css');
 echo $feedbackbox->renderer->header();
 $feedbackbox->page->add_to_page('feedbackboxname', format_string($feedbackbox->name));
-
-// Print the main part of the page.
-if ($feedbackbox->intro) {
-    $feedbackbox->page->add_to_page('intro', format_module_intro('feedbackbox', $feedbackbox, $cm->id));
-}
 
 $message = $feedbackbox->user_access_messages($USER->id);
 if ($message !== false) {

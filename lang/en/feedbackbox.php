@@ -524,7 +524,7 @@ $string['yesno_help'] = 'Simple Yes/No question.';
 $string['crontask'] = 'feedbackbox cleanup job';
 $string['turnus'] = 'Cycle';
 $string['combineworduntil'] = 'to';
-$string['round'] = 'round';
+$string['round'] = 'Round';
 $string['viewstats'] = 'Complete overview';
 $string['viewsingle'] = 'Single evaluation';
 $string['turnusonce'] = 'One time';
@@ -592,5 +592,62 @@ you go into your selection more specifically and add what exactly you mean. <br/
 Always bring it on!';
 $string['question_radio_info_head'] = 'Select an appropriate emoji.';
 $string['question_radio_info_body'] = 'Please note: The assessment is not primarily about the teacher, but about the entire <br/>
-Course - this also includes your fellow students and your own self-reflection.';
+course - this also includes your fellow students and your own self-reflection.';
 $string['downloadcsv'] = "Export overview";
+
+$string['check_feedbackbox'] = 'Check! Your feedback has been successfully submitted.';
+$string['check_feedbackbox_thanks'] = '<br/><div style="padding-top: 5px; padding-bottom: 5px">
+<b>Thank you very much for your help and time!</b><br/>
+Please understand that not all of your wishes will be implemented immediately.<br/>
+The evaluation takes place when the current feedback round has ended.<br/>
+You can then work together to find solutions.</div><br/>';
+$string['csv_headingone'] = ";Date;;Participants;;1. How are you getting on in the course? ;;;;2. What is going well?;;3. What could go better?;\n";
+$string['csv_headingtwo'] = ";from;to;participated;from a total of;Hypergalactically good!;Runs like a charm!;It's okay.;Help - I can't cope at all!;Tags;Comments;Tags;Comments\n";
+$string['essay_good'] = '<div class="infotext"><p><b>Explain your selection of tags in the free text field.</b><br/>
+This part of the feedback is optional.<br/>
+It doesn\'t have to be a doctoral thesis, but try to justify your choice so that<br/>
+your feedback is properly understood. To ensure that it is accepted, please formulate the<br/>
+text respectfully and constructively. And don\'t forget: everyone is happy to receive words of praise!
+</p></div><br/>';
+$string['essay_bad'] = '<div class="infotext"><p><b>Explain your selection of tags in the free text field.</b><br/>
+This part of the feedback is optional.<br/>
+It doesn\'t have to be a doctoral thesis, but try to justify your choice so that<br/>
+your feedback is properly understood. To ensure that it is accepted, please formulate the<br/>
+text respectfully and constructively. Do you have specific suggestions for solutions or alternatives?<br/>
+Bring them on!
+</p></div><br/>';
+$string['radio_good'] = 'Hy&shy;per&shy;ga&shy;lac&shy;tica&shy;lly good!';
+$string['radio_runs'] = 'Runs like a charm.';
+$string['radio_okay'] = 'It\'s okay.';
+$string['radio_help'] = 'Help - I can\'t cope at all!';
+$string['heading_stepone'] = '<p><h4>Step 1/3:<br/><b>Hey, how are you getting along in class?</b></h4></p>';
+$string['heading_steptwo'] = '<h4>Step 2/3:<br/><b>What is going well?</b></h4>';
+$string['heading_stepthree'] = '<h4>Step 3/3:<br/><b>What could work better?</b></h4>';
+$string['check_schedule'] = 'Schedule';
+$string['check_requirementlevel'] = 'Requirement level';
+$string['check_scopeoftasks'] = 'Scope of tasks';
+$string['check_examinationperformance'] = 'Examination performance';
+$string['check_timeframe'] = 'Timeframe';
+$string['check_punctuality'] = 'Punctuality';
+$string['check_breaks'] = 'Breaks';
+$string['check_numberofparticipants'] = 'Number of participants';
+$string['check_technicalaccess'] = 'Technical access';
+$string['check_mediaformats'] = 'Media formats';
+$string['check_materials'] = 'Materials';
+$string['check_supervision'] = 'Supervision';
+$string['check_feedbackculture'] = 'Feedback culture';
+$string['check_maintopics'] = 'Main topics';
+$string['check_technicaldepth'] = 'Technical depth';
+$string['check_redthread'] = 'Red thread';
+$string['check_comprehensibility'] = 'Comprehensibility';
+$string['check_attendance'] = 'Attendance';
+$string['check_participation'] = 'Participation';
+$string['check_motivation'] = 'Motivation';
+$string['check_interpersonal'] = 'Interpersonal';
+$string['check_other'] = 'Other';
+$string['subheading_structureworkload'] = '<p>STRUCTURE &amp; WORKLOAD<br></p>';
+$string['subheading_organizational'] = '<p>ORGANIZATIONAL<br></p>';
+$string['subheading_mediacommunication'] = '<p>MEDIA &amp; COMMUNICATION<br></p>';
+$string['subheading_content'] = '<p>CONTENTS<br></p>';
+$string['subheading_groupdynamicother'] = '<p>GROUP DYNAMICS &amp; OTHER<br></p>';
+$string['subheading_explaindetails'] = '<p><h4><b>Can you explain this in more detail?</b></h4></p>';

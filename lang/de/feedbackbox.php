@@ -594,3 +594,60 @@ $string['question_radio_info_head'] = 'Wähle ein entsprechendes Emoji aus.';
 $string['question_radio_info_body'] = 'Bitte beachte: Es geht bei der Bewertung nicht primär um die Lehrperson, sondern um die gesamte<br/>
 Lehrveranstaltung – dazu gehören auch deine Kommiliton*innen und die eigene Selbstreflexion.';
 $string['downloadcsv'] = "Übersicht exportieren";
+
+$string['check_feedbackbox'] = 'Check! Dein Feedback wurde erfolgreich eingereicht.';
+$string['check_feedbackbox_thanks'] = '<br/><div style="padding-top: 5px; padding-bottom: 5px">
+<b>Vielen Dank für deine Mithilfe und Zeit!</b><br/>
+Bitte habe Verständnis, wenn nicht alle deine Wünsche direkt umgesetzt werden.<br/>
+Die Auswertung erfolgt, wenn die laufende Feedbackrunde beendet ist.<br/>
+Ihr könnt dann gemeinsam Lösungen finden.</div><br/>';
+$string['csv_headingone'] = ";Datum;;Teilnehmende;;1. Wie kommst du im Kurs zurecht?;;;;2. Was läuft gut?;;3. Was könnte besser laufen?;\n";
+$string['csv_headingtwo'] = ";von;bis;nahmen teil;von insgesamt;Hypergalaktisch gut!;Läuft wie geschmiert!;Es ist okay.;Hilfe – ich komme gar nicht klar!;Tags;Kommentare;Tags;Kommentare\n";
+$string['essay_good'] = '<div class="infotext"><p><b>Erläutere deine Auswahl an Tags im Freitextfeld.</b><br/>
+Dieser Teil des Feedbacks ist optional.<br/>
+Es muss keine Doktorarbeit werden, aber versuche deine Auswahl zu begründen, damit dein<br/>
+Feedback richtig verstanden wird. Damit dieses auch gern angenommen wird, formuliere den<br/>
+Text bitte respektvoll und konstruktiv. Und vergiss nicht: Jede*r freut sich über lobende Worte!
+</p></div><br/>';
+$string['essay_bad'] = '<div class="infotext"><p><b>Erläutere deine Auswahl an Tags im Freitextfeld.</b><br/>
+Dieser Teil des Feedbacks ist optional.<br/>
+Es muss keine Doktorarbeit werden, aber versuche deine Auswahl zu begründen, damit dein<br/>
+Feedback richtig verstanden wird. Damit dieses auch gern angenommen wird, formuliere den<br/>
+Text bitte respektvoll und konstruktiv. Hast du konkrete Lösungsvorschläge oder Alternativen?</br>
+Immer her damit!
+</p></div><br/>';
+$string['radio_good'] = 'Hy&shy;per&shy;ga&shy;lak&shy;tisch gut!';
+$string['radio_runs'] = 'Läuft wie ge&shy;schmiert.';
+$string['radio_okay'] = 'Es ist okay.';
+$string['radio_help'] = 'Hilfe - Ich komme gar nicht klar!';
+$string['heading_stepone'] = '<p><h4>Schritt 1/3:<br/><b>Hey, wie kommst du im Kurs zurecht?</b></h4></p>';
+$string['heading_steptwo'] = '<h4>Schritt 2/3:<br/><b>Was läuft gut?</b></h4>';
+$string['heading_stepthree'] = '<h4>Schritt 3/3:<br/><b>Was könnte besser laufen?</b></h4>';
+$string['check_schedule'] = 'Ablaufplan';
+$string['check_requirementlevel'] = 'Anforderungsniveau';
+$string['check_scopeoftasks'] = 'Aufgabenumfang';
+$string['check_examinationperformance'] = 'Prüfungsleistung';
+$string['check_timeframe'] = 'Zeitumfang';
+$string['check_punctuality'] = 'Pünktlichkeit';
+$string['check_breaks'] = 'Pausen';
+$string['check_numberofparticipants'] = 'Teilnehmendenanzahl';
+$string['check_technicalaccess'] = 'Technischer Zugang';
+$string['check_mediaformats'] = 'Medienformate';
+$string['check_materials'] = 'Materialien';
+$string['check_supervision'] = 'Betreuung';
+$string['check_feedbackculture'] = 'Feedbackkultur';
+$string['check_maintopics'] = 'Themenschwerpunkte';
+$string['check_technicaldepth'] = 'Fachliche Tiefe';
+$string['check_redthread'] = 'Roter Faden';
+$string['check_comprehensibility'] = 'Verständlichkeit';
+$string['check_attendance'] = 'Anwesenheit';
+$string['check_participation'] = 'Beteiligung';
+$string['check_motivation'] = 'Motivation';
+$string['check_interpersonal'] = 'Zwischenmenschliches';
+$string['check_other'] = 'Sonstiges';
+$string['subheading_structureworkload'] = '<p>STRUKTUR &amp; WORKLOAD<br></p>';
+$string['subheading_organizational'] = '<p>ORGANISATORISCHES<br></p>';
+$string['subheading_mediacommunication'] = '<p>MEDIEN &amp; KOMMUNIKATION<br></p>';
+$string['subheading_content'] = '<p>INHALTE<br></p>';
+$string['subheading_groupdynamicother'] = '<p>GRUPPENDYNAMIK &amp; WEITERES<br></p>';
+$string['subheading_explaindetails'] = '<p><h4><b>Kannst du das genauer erklären?</b></h4></p>';

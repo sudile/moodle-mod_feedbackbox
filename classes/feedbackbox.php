@@ -48,7 +48,6 @@ use templatable;
 
 defined('MOODLE_INTERNAL') || die();
 
-/** @noinspection PhpIncludeInspection */
 require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
 
 class feedbackbox {
@@ -116,6 +115,11 @@ class feedbackbox {
     public $resume = null;
     public $usehtmleditor = null;
     public $notifications = null;
+
+    public $intro = null;
+    public $introformat = null;
+    public $strfeedbackboxs = '';
+    public $strfeedbackbox = '';
 
     /**
      * feedbackbox constructor.
@@ -229,6 +233,49 @@ class feedbackbox {
     }
 
     /**
+     * @param $id
+     * @param $response
+     * @return string
+     * @throws dml_exception
+     */
+    public static function encode_id($id, $response) {
+        $secret = get_config('feedbackbox', 'secret');
+        $ivlen = openssl_cipher_iv_length($cipher = "AES-128-CBC");
+        $iv = openssl_random_pseudo_bytes($ivlen);
+        $cipher_text_raw = openssl_encrypt($response . '|' . $id,
+            'AES-128-CBC',
+            $secret,
+            OPENSSL_RAW_DATA,
+            $iv);
+        $hmac = hash_hmac('sha256', $cipher_text_raw, $secret, $as_binary = true);
+        return base64_encode(gzdeflate($iv . $hmac . $cipher_text_raw));
+    }
+
+    /**
+     * @param $idraw
+     * @param $response
+     * @return bool|int
+     * @throws dml_exception
+     */
+    public static function decode_id($idraw, $response) {
+        $secret = get_config('feedbackbox', 'secret');
+        $c = gzinflate(base64_decode($idraw));
+        $ivlen = openssl_cipher_iv_length("AES-128-CBC");
+        $iv = substr($c, 0, $ivlen);
+        $hmac = substr($c, $ivlen, $sha2len = 32);
+        $ciphertext_raw = substr($c, $ivlen + $sha2len);
+        $original_plaintext = openssl_decrypt($ciphertext_raw, 'AES-128-CBC', $secret, OPENSSL_RAW_DATA, $iv);
+        $calcmac = hash_hmac('sha256', $ciphertext_raw, $secret, $as_binary = true);
+        if (hash_equals($hmac, $calcmac)) {
+            $parts = explode('|', $original_plaintext);
+            if (intval($parts[0]) == $response) {
+                return intval($parts[1]);
+            }
+        }
+        return false;
+    }
+
+    /**
      * Load all response information for this user.
      *
      * @param int $userid
@@ -326,7 +373,7 @@ class feedbackbox {
             $msg = $this->print_survey($USER->id, $quser);
             $viewform = data_submitted();
             if ($viewform && confirm_sesskey() && isset($viewform->submit) && isset($viewform->submittype) &&
-                ($viewform->submittype == "Submit Survey") && empty($msg)) {
+                ($viewform->submittype == "Submit Survey") && empty($msg)) { // Todo: translate
                 if (!empty($viewform->rid)) {
                     $viewform->rid = (int) $viewform->rid;
                 }
@@ -431,6 +478,8 @@ class feedbackbox {
         return ($this->opendate > 0) ? ($this->opendate < time()) : true;
     }
 
+    // Access Methods.
+
     public function is_closed() {
         return ($this->closedate > 0) ? ($this->closedate < time()) : false;
     }
@@ -438,8 +487,6 @@ class feedbackbox {
     public function user_is_eligible() {
         return ($this->capabilities->view && $this->capabilities->submit);
     }
-
-    // Access Methods.
 
     /**
      * @param $userid
@@ -626,7 +673,7 @@ class feedbackbox {
             // Add a 'hidden' variable for the mod's 'view.php', and use a language variable for the submit button.
 
             if ($formdata->sec == $numsections) {
-                $controlbuttons['submittype'] = ['type' => 'hidden', 'value' => 'Submit Survey'];
+                $controlbuttons['submittype'] = ['type' => 'hidden', 'value' => 'Submit Survey']; // Todo: translate
                 $controlbuttons['submit'] = ['type' => 'submit', 'class' => 'btn btn-primary',
                     'value' => get_string('submitsurvey', 'feedbackbox')];
             } else {
@@ -703,6 +750,8 @@ class feedbackbox {
         return $max;
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+
     /**
      * @param      $section
      * @param      $formdata
@@ -743,12 +792,8 @@ class feedbackbox {
             }
         }
         $message = '';
-        $nonumbering = false;
         // If no questions autonumbering do not display missing question(s) number(s).
         if ($checkmissing && $missing) {
-            if ($nonumbering) {
-                $strmissing = '';
-            }
             if ($missing == 1) {
                 $message = get_string('missingquestion', 'feedbackbox');
             }
@@ -757,14 +802,10 @@ class feedbackbox {
             }
         }
         if ($checkwrongformat && $wrongformat) {
-            if ($nonumbering) {
-                $message .= get_string('wronganswers', 'feedbackbox');
+            if ($wrongformat == 1) {
+                $message .= get_string('wrongformat', 'feedbackbox') . $strwrongformat;
             } else {
-                if ($wrongformat == 1) {
-                    $message .= get_string('wrongformat', 'feedbackbox') . $strwrongformat;
-                } else {
-                    $message .= get_string('wrongformats', 'feedbackbox') . $strwrongformat;
-                }
+                $message .= get_string('wrongformats', 'feedbackbox') . $strwrongformat;
             }
         }
         return ($message);
@@ -781,8 +822,6 @@ class feedbackbox {
         $this->response_delete($response->rid, $response->sec);
         return $this->response_insert($response, $userid);
     }
-
-    /** @noinspection PhpUnusedPrivateMethodInspection */
 
     /**
      * @param      $rid
@@ -822,9 +861,9 @@ class feedbackbox {
             $qsql = '';
             $params = [];
         }
-
+        array_unshift($params, $rid);
         /* delete values */
-        $select = 'response_id = \'' . $rid . '\' ' . $qsql;
+        $select = 'response_id = ? ' . $qsql;
         foreach (['resp_single', 'response_text', 'resp_multiple'] as $tbl) {
             $DB->delete_records_select('feedbackbox_' . $tbl, $select, $params);
         }
@@ -1030,23 +1069,11 @@ class feedbackbox {
         $rid = '',
         $blankfeedbackbox = false,
         $outputtarget = 'html') {
-        global $CFG, $DB;
-        /** @noinspection PhpIncludeInspection */
+        global $CFG;
         require_once($CFG->libdir . '/filelib.php');
-
-        $userid = '';
-        $resp = '';
         $groupname = '';
         $timesubmitted = '';
         $ruser = '';
-        if ($resp && !$blankfeedbackbox) {
-            if ($userid) {
-                if ($user = $DB->get_record('user', ['id' => $userid])) {
-                    $ruser = fullname($user);
-                }
-            }
-            $ruser = '- ' . get_string('anonymous', 'feedbackbox') . ' -';
-        }
         if ($ruser) {
             $respinfo = '';
             if ($outputtarget == 'html') {
@@ -1113,6 +1140,21 @@ class feedbackbox {
         return $DB->update_record('feedbackbox_response', $record);
     }
 
+    public function get_current_turnus($time = null) {
+        if ($time === null) {
+            $time = time();
+        }
+        $data = $this->get_turnus_zones();
+        foreach ($data as $entry) {
+            if ($entry->from < $time && $entry->to > $time) {
+                $entry->fromstr = date('d.m.Y', $entry->from);
+                $entry->tostr = date('d.m.Y', $entry->to);
+                return $entry;
+            }
+        }
+        return false;
+    }
+
     /**
      * @throws coding_exception
      * @throws dml_exception
@@ -1120,35 +1162,10 @@ class feedbackbox {
      * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     private function response_goto_thankyou() {
-        $thankurl = '';
-        if (!empty($thankurl)) {
-            if (!headers_sent()) {
-                header("Location: $thankurl");
-                exit;
-            }
-            echo '
-                <script type="text/javascript">
-                <!--
-                window.location="' . $thankurl . '"
-                //-->
-                </script>
-                <noscript>
-                <h2 class="thankhead">Thank You for completing this survey.</h2>
-                <blockquote class="thankbody">Please click
-                <a href="' . $thankurl . '">here</a> to continue.</blockquote>
-                </noscript>
-            ';
-            exit;
-        }
-
-        $this->page->add_to_page('title', 'Check! Dein Feedback wurde erfolgreich eingereicht.');
+        $this->page->add_to_page('title', get_string('check_feedbackbox', 'mod_feedbackbox'));
         $this->page->add_to_page('addinfo',
             ($this->renderer->pix_icon('b/fb_danke', 'Icon', 'mod_feedbackbox')) .
-            '<br/><div style="padding-top: 5px; padding-bottom: 5px">
-<b>Vielen Dank für deine Mithilfe und Zeit!</b><br/>
-Bitte habe Verständnis, wenn nicht alle deine Wünsche direkt umgesetzt werden.<br/>
-Die Auswertung erfolgt, wenn die laufende Feedbackrunde beendet ist.<br/>
-Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
+            get_string('check_feedbackbox_thanks', 'mod_feedbackbox'));
         // Default set currentgroup to view all participants.
         // TODO why not set to current respondent's groupid (if any)?
         $url = new moodle_url('/course/view.php', ['id' => $this->course->id]);
@@ -1174,12 +1191,10 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
     /**
      * Function to view all loaded responses.
      *
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
      * @noinspection PhpUnused
      */
     public function view_all_responses() {
+        /*
         $this->print_survey_start('', 1);
 
         // If a student's responses have been deleted by teacher while student was viewing the report,
@@ -1194,6 +1209,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         }
 
         $this->print_survey_end(1, 1);
+        */
     }
 
     /**
@@ -1250,19 +1266,74 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         return $this->get_full_submission_for_export($rid);
     }
 
-    public function get_current_turnus($time = null) {
-        if ($time === null) {
-            $time = time();
+    /**
+     * Return a JSON structure containing all the questions and answers for a specific submission.
+     *
+     * @param $rid
+     * @return array
+     * @throws dml_exception
+     */
+    private function get_full_submission_for_export($rid) {
+        if (!isset($this->responses[$rid])) {
+            $this->add_response($rid);
         }
-        $data = $this->get_turnus_zones();
-        foreach ($data as $entry) {
-            if ($entry->from < $time && $entry->to > $time) {
-                $entry->fromstr = date('d.m.Y', $entry->from);
-                $entry->tostr = date('d.m.Y', $entry->to);
-                return $entry;
+
+        $exportstructure = [];
+        foreach ($this->questions as $question) {
+            $rqid = 'q' . $question->id;
+            $response = new stdClass();
+            $response->questionname = $question->position . '. ' . $question->name;
+            $response->questiontext = $question->content;
+            $response->answers = [];
+            if ($question->type_id == 8) {
+                $choices = [];
+                $cids = [];
+                foreach ($question->choices as $cid => $choice) {
+                    if (!empty($choice->value) && (strpos($choice->content, '=') !== false)) {
+                        $choices[$choice->value] = substr($choice->content, (strpos($choice->content, '=') + 1));
+                    } else {
+                        $cids[$rqid . '_' . $cid] = $choice->content;
+                    }
+                }
+                if (isset($this->responses[$rid]->answers[$question->id])) {
+                    foreach ($cids as $rqid => $choice) {
+                        $cid = substr($rqid, (strpos($rqid, '_') + 1));
+                        if (isset($this->responses[$rid]->answers[$question->id][$cid])) {
+                            if (isset($question->choices[$cid]) &&
+                                isset($choices[$this->responses[$rid]->answers[$question->id][$cid]->value])) {
+                                $rating = $choices[$this->responses[$rid]->answers[$question->id][$cid]->value];
+                            } else {
+                                $rating = $this->responses[$rid]->answers[$question->id][$cid]->value;
+                            }
+                            $response->answers[] = $question->choices[$cid]->content . ' = ' . $rating;
+                        }
+                    }
+                }
+            } else if ($question->has_choices()) {
+                $answertext = '';
+                if (isset($this->responses[$rid]->answers[$question->id])) {
+                    $i = 0;
+                    foreach ($this->responses[$rid]->answers[$question->id] as $answer) {
+                        if ($i > 0) {
+                            $answertext .= '; ';
+                        }
+                        if ($question->choices[$answer->choiceid]->is_other_choice()) {
+                            $answertext .= $answer->value;
+                        } else {
+                            $answertext .= $question->choices[$answer->choiceid]->content;
+                        }
+                        $i++;
+                    }
+                }
+                $response->answers[] = $answertext;
+
+            } else if (isset($this->responses[$rid]->answers[$question->id])) {
+                $response->answers[] = $this->responses[$rid]->answers[$question->id][0]->value;
             }
+            $exportstructure[] = $response;
         }
-        return false;
+
+        return $exportstructure;
     }
 
     /**
@@ -1341,6 +1412,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         $counter = 1;
         foreach ($top3 as $entry) {
             unset($entry->result);
+            $entry->name = translate::patch($entry->name);
             $entry->id = $counter++;
         }
         $result->good = array_values($top3);
@@ -1354,6 +1426,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         $counter = 1;
         foreach ($top3 as $entry) {
             unset($entry->result);
+            $entry->name = translate::patch($entry->name);
             $entry->id = $counter++;
         }
         $result->bad = array_values($top3);
@@ -1418,6 +1491,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         $counter = 1;
         foreach ($top3 as $entry) {
             unset($entry->result);
+            $entry->name = translate::patch($entry->name);
             $entry->id = $counter++;
         }
         $result->good = array_values($top3);
@@ -1431,6 +1505,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         $counter = 1;
         foreach ($top3 as $entry) {
             unset($entry->result);
+            $entry->name = translate::patch($entry->name);
             $entry->id = $counter++;
         }
         $result->bad = array_values($top3);
@@ -1523,6 +1598,9 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             $insql . ' GROUP BY qc.content ORDER BY result DESC',
             array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
         $result->goodchoises = array_values($good);
+        foreach ($result->goodchoises as $goodchoise) {
+            $goodchoise->name = translate::patch($goodchoise->name);
+        }
         [$insql, $inparams] = $DB->get_in_or_equal($positions);
         $bad = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
             ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
@@ -1532,6 +1610,9 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             $insql . ' GROUP BY qc.content ORDER BY result DESC',
             array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
         $result->badchoises = array_values($bad);
+        foreach ($result->badchoises as $badchoise) {
+            $badchoise->name = translate::patch($badchoise->name);
+        }
 
         $result->goodmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
             ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
@@ -1544,6 +1625,108 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
             [$this->id, $zone->from, $zone->to, QUESESSAY, 17]));
         return $result;
+    }
+
+    public function generate_csv() {
+        global $DB;
+        $head = get_string('csv_headingone', 'mod_feedbackbox');
+        $head .= get_string('csv_headingtwo', 'mod_feedbackbox');
+        $body = '';
+        $zones = $this->get_turnus_zones();
+        foreach ($zones as $zone) {
+            $line = get_string('round', 'mod_feedbackbox') . ' ' . $zone->id . ';' . date('d.m.Y',
+                    $zone->from) . ';' . date('d.m.Y', $zone->to) . ';';
+
+            $ranking = $DB->get_records_sql('SELECT qc.id as "id", qc.content as "content"
+            FROM {feedbackbox_quest_choice} qc
+            JOIN {feedbackbox_question} q ON qc.question_id = q.id WHERE q.surveyid = ? AND type_id = ?',
+                [$this->survey->id, QUESRADIO]);
+
+            $participants = intval($DB->get_field_sql(
+                'SELECT count(*) FROM {feedbackbox_response}
+            WHERE feedbackboxid=? AND submitted > ? AND submitted < ? AND complete=\'y\'',
+                [$this->id, $zone->from, $zone->to]));
+
+            $totalparticipants = count(get_enrolled_users(context_course::instance($this->course->id)));
+
+            $line .= $participants . ';' . $totalparticipants . ';';
+
+            $radiochoise = $DB->get_records_sql(
+                'SELECT choice_id, COUNT(*) as "result" FROM {feedbackbox_resp_single} rs' .
+                ' JOIN {feedbackbox_response} r ON rs.response_id = r.id AND r.complete=\'y\'' .
+                ' WHERE r.feedbackboxid=? AND r.submitted > ? AND r.submitted < ? GROUP BY rs.choice_id',
+                [$this->id, $zone->from, $zone->to]);
+
+            $rating = [0, 0, 0, 0];
+            $rankinglist = array_column($ranking, 'id');
+            foreach ($radiochoise as $choise) {
+                if ($participants < 3) {
+                    $rating[array_search($choise->choice_id, $rankinglist)] = 0;
+                } else {
+                    $rating[array_search($choise->choice_id, $rankinglist)] = $choise->result;
+                }
+            }
+            foreach ($rating as $rate) {
+                $line .= $rate . ';';
+            }
+
+            if ($participants < 3) {
+                $line .= ';;;';
+                $body .= $line . "\n";
+                continue;
+            }
+
+            $positions = [4, 5, 6, 7, 8];
+            [$insql, $inparams] = $DB->get_in_or_equal($positions);
+            $good = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
+                ' JOIN {feedbackbox_quest_choice} qc ON rm.choice_id = qc.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position ' .
+                $insql . ' GROUP BY qc.content ORDER BY result DESC',
+                array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
+            $goodchoises = array_values($good);
+
+            [$insql, $inparams] = $DB->get_in_or_equal($positions);
+            $bad = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
+                ' JOIN {feedbackbox_quest_choice} qc ON rm.choice_id = qc.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND NOT q.position ' .
+                $insql . ' GROUP BY qc.content ORDER BY result DESC',
+                array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
+            $badchoises = array_values($bad);
+
+            $goodmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rt.question_id = q.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
+                [$this->id, $zone->from, $zone->to, QUESESSAY, 9]));
+            $badmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
+                ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
+                ' JOIN {feedbackbox_question} q ON rt.question_id = q.id' .
+                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
+                [$this->id, $zone->from, $zone->to, QUESESSAY, 17]));
+            foreach ($goodchoises as $gc) {
+                $line .= translate::patch($gc->name) . '(' . $gc->result . '), ';
+            }
+            $line = rtrim($line, ', ') . ';"';
+            foreach ($goodmessages as $gm) {
+                $line .= '„' . str_replace(';', '', $gm) . '“, ';
+            }
+            $line = rtrim($line, ', ') . '";';
+
+            foreach ($badchoises as $bc) {
+                $line .= translate::patch($bc->name) . '(' . $bc->result . '), ';
+            }
+            $line = rtrim($line, ', ') . ';"';
+            foreach ($badmessages as $bm) {
+                $line .= '„' . str_replace(';', '', $bm) . '“, ';
+            }
+            $line = rtrim($line, ', ') . '"';
+            $body .= $line . "\n";
+        }
+        return $head . $body;
     }
 
     /**
@@ -1564,7 +1747,6 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             $message .= $this->get_full_submission_for_notifications($rid);
         }
 
-        $success = true;
         if ($notifyusers = $this->get_notifiable_users($USER->id)) {
             $info = new stdClass();
             // Need to handle user differently for anonymous surveys.
@@ -1574,8 +1756,9 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             $langstringtext = 'submissionnotificationtextanon';
             $langstringhtml = 'submissionnotificationhtmlanon';
             $info->name = format_string($this->name);
-            $info->submissionurl = $CFG->wwwroot . '/mod/feedbackbox/report.php?action=vresp&sid=' . $this->survey->id .
-                '&rid=' . $rid . '&instance=' . $this->id;
+
+            $info->submissionurl = (new moodle_url('/mod/feedbackbox/report.php',
+                ['action' => 'vresp', 'sid' => $this->survey->id, 'rid' => $rid, 'instance' => $this->id]))->out(false);
             $info->coursename = $this->course->fullname;
 
             $info->postsubject = get_string('submissionnotificationsubject', 'feedbackbox');
@@ -1592,7 +1775,7 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
             }
         }
 
-        return $success;
+        return true;
     }
 
     /**
@@ -1617,76 +1800,6 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         }
 
         return $message;
-    }
-
-    /**
-     * Return a JSON structure containing all the questions and answers for a specific submission.
-     *
-     * @param $rid
-     * @return array
-     * @throws dml_exception
-     */
-    private function get_full_submission_for_export($rid) {
-        if (!isset($this->responses[$rid])) {
-            $this->add_response($rid);
-        }
-
-        $exportstructure = [];
-        foreach ($this->questions as $question) {
-            $rqid = 'q' . $question->id;
-            $response = new stdClass();
-            $response->questionname = $question->position . '. ' . $question->name;
-            $response->questiontext = $question->content;
-            $response->answers = [];
-            if ($question->type_id == 8) {
-                $choices = [];
-                $cids = [];
-                foreach ($question->choices as $cid => $choice) {
-                    if (!empty($choice->value) && (strpos($choice->content, '=') !== false)) {
-                        $choices[$choice->value] = substr($choice->content, (strpos($choice->content, '=') + 1));
-                    } else {
-                        $cids[$rqid . '_' . $cid] = $choice->content;
-                    }
-                }
-                if (isset($this->responses[$rid]->answers[$question->id])) {
-                    foreach ($cids as $rqid => $choice) {
-                        $cid = substr($rqid, (strpos($rqid, '_') + 1));
-                        if (isset($this->responses[$rid]->answers[$question->id][$cid])) {
-                            if (isset($question->choices[$cid]) &&
-                                isset($choices[$this->responses[$rid]->answers[$question->id][$cid]->value])) {
-                                $rating = $choices[$this->responses[$rid]->answers[$question->id][$cid]->value];
-                            } else {
-                                $rating = $this->responses[$rid]->answers[$question->id][$cid]->value;
-                            }
-                            $response->answers[] = $question->choices[$cid]->content . ' = ' . $rating;
-                        }
-                    }
-                }
-            } else if ($question->has_choices()) {
-                $answertext = '';
-                if (isset($this->responses[$rid]->answers[$question->id])) {
-                    $i = 0;
-                    foreach ($this->responses[$rid]->answers[$question->id] as $answer) {
-                        if ($i > 0) {
-                            $answertext .= '; ';
-                        }
-                        if ($question->choices[$answer->choiceid]->is_other_choice()) {
-                            $answertext .= $answer->value;
-                        } else {
-                            $answertext .= $question->choices[$answer->choiceid]->content;
-                        }
-                        $i++;
-                    }
-                }
-                $response->answers[] = $answertext;
-
-            } else if (isset($this->responses[$rid]->answers[$question->id])) {
-                $response->answers[] = $this->responses[$rid]->answers[$question->id][0]->value;
-            }
-            $exportstructure[] = $response;
-        }
-
-        return $exportstructure;
     }
 
     /**
@@ -1809,148 +1922,5 @@ Ihr könnt dann gemeinsam Lösungen finden.</div><br/>');
         $values += text::response_select($rid);
 
         return ($values);
-    }
-
-    /**
-     * @param $id
-     * @param $response
-     * @return string
-     * @throws dml_exception
-     */
-    public static function encode_id($id, $response) {
-        $secret = get_config('feedbackbox', 'secret');
-        $ivlen = openssl_cipher_iv_length($cipher = "AES-128-CBC");
-        $iv = openssl_random_pseudo_bytes($ivlen);
-        $cipher_text_raw = openssl_encrypt($response . '|' . $id,
-            'AES-128-CBC',
-            $secret,
-            OPENSSL_RAW_DATA,
-            $iv);
-        $hmac = hash_hmac('sha256', $cipher_text_raw, $secret, $as_binary = true);
-        return base64_encode(gzdeflate($iv . $hmac . $cipher_text_raw));
-    }
-
-    /**
-     * @param $idraw
-     * @param $response
-     * @return bool|int
-     * @throws dml_exception
-     */
-    public static function decode_id($idraw, $response) {
-        $secret = get_config('feedbackbox', 'secret');
-        $c = gzinflate(base64_decode($idraw));
-        $ivlen = openssl_cipher_iv_length("AES-128-CBC");
-        $iv = substr($c, 0, $ivlen);
-        $hmac = substr($c, $ivlen, $sha2len = 32);
-        $ciphertext_raw = substr($c, $ivlen + $sha2len);
-        $original_plaintext = openssl_decrypt($ciphertext_raw, 'AES-128-CBC', $secret, OPENSSL_RAW_DATA, $iv);
-        $calcmac = hash_hmac('sha256', $ciphertext_raw, $secret, $as_binary = true);
-        if (hash_equals($hmac, $calcmac)) {
-            $parts = explode('|', $original_plaintext);
-            if (intval($parts[0]) == $response) {
-                return intval($parts[1]);
-            }
-        }
-        return false;
-    }
-
-    public function generate_csv() {
-        global $DB;
-        $head = ";Datum;;Teilnehmende;;1. Wie kommst du im Kurs zurecht?;;;;2. Was läuft gut?;;3. Was könnte besser laufen?;\n";
-        $head .= ";von;bis;nahmen teil;von insgesamt;Hypergalaktisch gut!;Läuft wie geschmiert!;Es ist okay.;Hilfe – ich komme gar nicht klar!;Tags;Kommentare;Tags;Kommentare\n";
-        $body = '';
-        $zones = $this->get_turnus_zones();
-        foreach ($zones as $zone) {
-            $line = 'Runde ' . $zone->id . ';' . date('d.m.Y', $zone->from) . ';' . date('d.m.Y', $zone->to) . ';';
-
-            $ranking = $DB->get_records_sql('SELECT qc.id as "id", qc.content as "content"
-            FROM {feedbackbox_quest_choice} qc
-            JOIN {feedbackbox_question} q ON qc.question_id = q.id WHERE q.surveyid = ? AND type_id = ?',
-                [$this->survey->id, QUESRADIO]);
-
-            $participants = intval($DB->get_field_sql(
-                'SELECT count(*) FROM {feedbackbox_response}
-            WHERE feedbackboxid=? AND submitted > ? AND submitted < ? AND complete=\'y\'',
-                [$this->id, $zone->from, $zone->to]));
-
-            $totalparticipants = count(get_enrolled_users(context_course::instance($this->course->id)));
-
-            $line .= $participants . ';' . $totalparticipants . ';';
-
-            $radiochoise = $DB->get_records_sql(
-                'SELECT choice_id, COUNT(*) as "result" FROM {feedbackbox_resp_single} rs' .
-                ' JOIN {feedbackbox_response} r ON rs.response_id = r.id AND r.complete=\'y\'' .
-                ' WHERE r.feedbackboxid=? AND r.submitted > ? AND r.submitted < ? GROUP BY rs.choice_id',
-                [$this->id, $zone->from, $zone->to]);
-
-            $rating = [0, 0, 0, 0];
-            $rankinglist = array_column($ranking, 'id');
-            foreach ($radiochoise as $choise) {
-                if ($participants < 3) {
-                    $rating[array_search($choise->choice_id, $rankinglist)] = 0;
-                } else {
-                    $rating[array_search($choise->choice_id, $rankinglist)] = $choise->result;
-                }
-            }
-            foreach ($rating as $rate) {
-                $line .= $rate . ';';
-            }
-
-            if ($participants < 3) {
-                $line .= ';;;';
-                $body .= $line . "\n";
-                continue;
-            }
-
-            $positions = [4, 5, 6, 7, 8];
-            [$insql, $inparams] = $DB->get_in_or_equal($positions);
-            $good = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
-                ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
-                ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
-                ' JOIN {feedbackbox_quest_choice} qc ON rm.choice_id = qc.id' .
-                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position ' .
-                $insql . ' GROUP BY qc.content ORDER BY result DESC',
-                array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
-            $goodchoises = array_values($good);
-            [$insql, $inparams] = $DB->get_in_or_equal($positions);
-            $bad = $DB->get_records_sql('SELECT qc.content as "name", COUNT(*) as "result" FROM {feedbackbox_response} r' .
-                ' JOIN {feedbackbox_resp_multiple} rm ON rm.response_id = r.id AND r.complete=\'y\'' .
-                ' JOIN {feedbackbox_question} q ON rm.question_id = q.id' .
-                ' JOIN {feedbackbox_quest_choice} qc ON rm.choice_id = qc.id' .
-                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND NOT q.position ' .
-                $insql . ' GROUP BY qc.content ORDER BY result DESC',
-                array_merge([$this->id, $zone->from, $zone->to, QUESCHECK], $inparams));
-            $badchoises = array_values($bad);
-
-            $goodmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
-                ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
-                ' JOIN {feedbackbox_question} q ON rt.question_id = q.id' .
-                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
-                [$this->id, $zone->from, $zone->to, QUESESSAY, 9]));
-            $badmessages = array_values($DB->get_fieldset_sql('SELECT rt.response FROM {feedbackbox_response} r' .
-                ' JOIN {feedbackbox_response_text} rt ON rt.response_id = r.id AND r.complete=\'y\'' .
-                ' JOIN {feedbackbox_question} q ON rt.question_id = q.id' .
-                ' WHERE r.feedbackboxid = ? AND r.submitted > ? AND r.submitted < ? AND q.type_id = ? AND q.position = ?',
-                [$this->id, $zone->from, $zone->to, QUESESSAY, 17]));
-            foreach ($goodchoises as $gc) {
-                $line .= $gc->name . '(' . $gc->result . '), ';
-            }
-            $line = rtrim($line, ', ') . ';"';
-            foreach ($goodmessages as $gm) {
-                $line .= '„' . str_replace(';', '', $gm) . '“, ';
-            }
-            $line = rtrim($line, ', ') . '";';
-
-            foreach ($badchoises as $bc) {
-                $line .= $bc->name . '(' . $bc->result . '), ';
-            }
-            $line = rtrim($line, ', ') . ';"';
-            foreach ($badmessages as $bm) {
-                $line .= '„' . str_replace(';', '', $bm) . '“, ';
-            }
-            $line = rtrim($line, ', ') . '"';
-            $body .= $line . "\n";
-        }
-        return $head . $body;
     }
 }

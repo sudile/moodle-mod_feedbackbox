@@ -24,7 +24,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 
-/** @noinspection PhpIncludeInspection */
 require_once($CFG->dirroot . '/mod/feedbackbox/backup/moodle2/restore_feedbackbox_stepslib.php');
 
 /**

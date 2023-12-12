@@ -371,7 +371,6 @@ $string['feedbackbox:submissionnotification'] = 'Receive notification for each s
 $string['feedbackbox:submit'] = 'Complete and submit a feedbackbox';
 $string['feedbackbox:view'] = 'View a feedbackbox';
 $string['feedbackbox:viewsingleresponse'] = 'View complete individual responses';
-$string['feedbackbox:deleteinstance'] = 'Allow users to delete Feedbackbox instances.';
 $string['feedbackboxadministration'] = 'feedbackbox Administration';
 $string['feedbackboxcloses'] = 'feedbackbox Closes';
 $string['feedbackboxopens'] = 'feedbackbox Opens';

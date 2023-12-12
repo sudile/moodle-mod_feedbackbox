@@ -40,13 +40,6 @@ $capabilities = [
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ],
 
-    // Used to prevent access deletion of feedbackboxes by normal teachers if not wanted.
-    'mod/feedbackbox:deleteinstance' => [
-        'riskbitmask' => RISK_DATALOSS,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'legacy' => []
-    ],
     // Ability to see that the feedbackbox exists, and the basic information about it.
     'mod/feedbackbox:view' => [
 

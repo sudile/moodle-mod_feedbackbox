@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2023112100;  // The current module version (Date: YYYYMMDDXX).
+$plugin->version = 2023121200;  // The current module version (Date: YYYYMMDDXX).
 $plugin->requires = 2019052006; // Moodle version (3.7).
 $plugin->component = 'mod_feedbackbox';
-$plugin->release = '1.0.1 (Build - 2023112100)';
+$plugin->release = '1.0.2 (Build - 2023121200)';
 $plugin->maturity = MATURITY_STABLE;

@@ -457,9 +457,7 @@ function feedbackbox_delete_instance($id) {
     global $DB, $CFG;
     require_once($CFG->dirroot . '/mod/feedbackbox/locallib.php');
     $cm = get_coursemodule_from_instance('feedbackbox', $id);
-    if (!has_capability('mod/feedbackbox:deleteinstance', context_module::instance($cm->id))) {
-        return false;
-    }
+
     if (!$feedbackbox = $DB->get_record('feedbackbox', ['id' => $id])) {
         return false;
     }
